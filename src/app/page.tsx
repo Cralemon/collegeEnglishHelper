@@ -115,26 +115,50 @@ export default function Home() {
         <Card>
           <CardHeader>
             <CardTitle>字体排版</CardTitle>
-            <CardDescription>EB Garamond (Display) + Sarasa Gothic (Body)</CardDescription>
+            <CardDescription>EB Garamond / Source Han Serif (Display) + Sarasa Gothic (Body)</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
-              <p className="font-display text-display-xl text-ink">Display XL</p>
-              <p className="text-sm text-muted">font-display / 64px / weight 400</p>
+              <p className="text-display-xl text-ink">Display XL</p>
+              <p className="text-body-sm text-muted">64px / weight 400 / line-height 1.05 / letter-spacing -1.5px</p>
             </div>
             <div>
-              <p className="font-display text-display-lg text-ink">Display LG</p>
-              <p className="text-sm text-muted">font-display / 48px / weight 400</p>
+              <p className="text-display-lg text-ink">Display LG</p>
+              <p className="text-body-sm text-muted">48px / weight 400 / line-height 1.1 / letter-spacing -1px</p>
             </div>
             <div>
-              <p className="font-display text-display-md text-ink">Display MD</p>
-              <p className="text-sm text-muted">font-display / 36px / weight 400</p>
+              <p className="text-display-md text-ink">Display MD</p>
+              <p className="text-body-sm text-muted">36px / weight 400 / line-height 1.15 / letter-spacing -0.5px</p>
             </div>
             <div>
-              <p className="font-body text-body-md text-ink">
+              <p className="text-display-sm text-ink">Display SM</p>
+              <p className="text-body-sm text-muted">28px / weight 400 / line-height 1.2 / letter-spacing -0.3px</p>
+            </div>
+            <div>
+              <p className="text-title-lg text-ink">Title LG</p>
+              <p className="text-body-sm text-muted">22px / weight 500 / line-height 1.3</p>
+            </div>
+            <div>
+              <p className="text-title-md text-ink">Title MD</p>
+              <p className="text-body-sm text-muted">18px / weight 500 / line-height 1.4</p>
+            </div>
+            <div>
+              <p className="text-body-md text-ink">
                 这是正文内容，使用 Sarasa Gothic 字体。The quick brown fox jumps over the lazy dog.
               </p>
-              <p className="text-sm text-muted">font-body / 16px / weight 400</p>
+              <p className="text-body-sm text-muted">16px / weight 400 / line-height 1.55</p>
+            </div>
+            <div>
+              <p className="text-body-sm text-ink">这是辅助文字，用于说明和注释。</p>
+              <p className="text-body-sm text-muted">14px / weight 400 / line-height 1.55</p>
+            </div>
+            <div>
+              <p className="text-caption text-ink">CAPTION LABEL</p>
+              <p className="text-body-sm text-muted">13px / weight 500 / line-height 1.4</p>
+            </div>
+            <div>
+              <p className="text-code text-ink">const hello = "world";</p>
+              <p className="text-body-sm text-muted">14px / JetBrains Mono / weight 400 / line-height 1.6</p>
             </div>
           </CardContent>
         </Card>

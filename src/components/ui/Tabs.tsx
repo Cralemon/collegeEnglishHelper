@@ -147,7 +147,7 @@ const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
         ref={ref}
         role="tabpanel"
         data-state={activeTab === value ? 'active' : 'inactive'}
-        className={cn('mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2', className)}
+        className={cn('focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2', className)}
         {...props}
       />
     );
