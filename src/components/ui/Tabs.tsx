@@ -56,7 +56,7 @@ Tabs.displayName = 'Tabs';
 const tabsListVariants = cva('inline-flex items-center justify-center', {
   variants: {
     variant: {
-      default: 'bg-surface-card rounded-lg p-1 gap-1',
+      default: 'bg-transparent gap-1',
       pills: 'bg-transparent gap-2',
       underline: 'bg-transparent border-b border-hairline gap-0',
     },
