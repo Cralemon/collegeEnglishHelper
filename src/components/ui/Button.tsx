@@ -14,9 +14,9 @@ const buttonVariants = cva(
         danger: 'bg-error text-white hover:opacity-90 active:opacity-80',
       },
       size: {
-        sm: 'h-8 px-3 text-sm rounded-sm',
+        sm: 'h-8 px-3 text-sm rounded-md',
         md: 'h-10 px-4 text-body-md rounded-md',
-        lg: 'h-12 px-6 text-lg rounded-lg',
+        lg: 'h-12 px-6 text-lg rounded-md',
         icon: 'h-10 w-10 rounded-md',
       },
     },

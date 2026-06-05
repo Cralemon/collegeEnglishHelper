@@ -43,7 +43,7 @@ export default function Home() {
             <CardTitle>主题切换</CardTitle>
             <CardDescription>当前主题：{theme === 'system' ? '跟随系统' : theme === 'dark' ? '深色' : '浅色'}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <div className="flex gap-2">
               <Button
                 variant={theme === 'light' ? 'primary' : 'outline'}
@@ -73,7 +73,7 @@ export default function Home() {
             <CardTitle>色彩系统</CardTitle>
             <CardDescription>Claude 风格配色方案</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <div className="h-16 rounded-md bg-primary" />
@@ -208,7 +208,7 @@ export default function Home() {
             <CardTitle>徽章组件</CardTitle>
             <CardDescription>多种状态和尺寸</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <div className="flex flex-wrap gap-2">
               <Badge>Default</Badge>
               <Badge variant="primary">Primary</Badge>
@@ -280,7 +280,7 @@ export default function Home() {
             <CardTitle>卡片变体</CardTitle>
             <CardDescription>多种卡片样式</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <div className="grid gap-4 md:grid-cols-2">
               <Card variant="default">
                 <CardContent>
