@@ -876,3 +876,4 @@ git push origin develop --tags
 | v3.3 | 2026-06-05 | 明确目标平台：Android + Windows |
 | v3.4 | 2026-06-05 | 新增 DEVLOG 同频更新原则；重写 DEVLOG.md 修正阶段描述 |
 | v3.5 | 2026-06-05 | 新增原则：Step 内细分，逐步完成 |
+| v3.6 | 2026-06-05 | Step 2 完成；新增原则：最小变更原则；更新 DEVLOG 迭代优化记录 |
