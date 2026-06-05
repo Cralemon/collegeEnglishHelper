@@ -40,6 +40,6 @@ Thumbs.db
 next-env.d.ts
 
 # Fonts (large files, manage separately)
-# public/fonts/*.ttf
-# public/fonts/*.ttc
-# public/fonts/*.otf
+public/fonts/*.ttf
+public/fonts/*.ttc
+public/fonts/*.otf

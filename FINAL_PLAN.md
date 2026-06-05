@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 最终开发规划
 
-> 版本：v2.1 | 日期：2026-06-05 | 状态：待确认
+> 版本：v2.2 | 日期：2026-06-05 | 状态：待确认
 
 ---
 
@@ -49,13 +49,13 @@
 
 | 用途 | 字体 | 文件位置 | 说明 |
 |------|------|----------|------|
-| 英文衬线体 | EB Garamond | `D:\personal\fonts\fontbase\fonts\EBGaramond-*.ttf` | 10 个字重文件 |
-| 英文无衬线体 | Sarasa Gothic (更纱黑体) | `D:\personal\fonts\fontbase\fonts\SarasaUiSC-*.ttf` | 简体中文 UI 版本 |
-| 中文衬线体 | ⚠️ 待确认 | 未在字体目录找到 | 见下方说明 |
+| 英文衬线体 | EB Garamond | `public/fonts/EBGaramond-*.ttf` | 10 个字重文件 |
+| 英文无衬线体 | Sarasa Gothic (更纱黑体) | `public/fonts/SarasaUiSC-*.ttf` | 简体中文 UI 版本 |
+| 中文衬线体 | Source Han Serif (思源宋体) | `public/fonts/SourceHanSerif.ttc` | 系统字体复制 |
 | 中文无衬线体 | Sarasa Gothic (更纱黑体) | 同英文无衬线体 | 内置中文支持 |
 
-> **⚠️ 中文衬线体说明**：在 `D:\personal\fonts\fontbase\fonts` 中未找到 Source Han Serif（思源宋体）。
-> 请确认：是否需要单独下载？或者使用其他中文衬线体替代？
+> **字体管理说明**：字体文件已复制到 `public/fonts/`，在 `.gitignore` 中忽略（大二进制文件）。
+> 首次开发或克隆后需从本地系统复制字体文件。
 
 ### 2.4 项目结构
 
@@ -460,8 +460,14 @@ export const sarasaGothic = localFont({
   display: 'swap',
 });
 
+// Source Han Serif - 中文衬线体（可变字重 TTC）
+// 注意：next/font/local 不直接支持 TTC，需使用 CSS @font-face
+export const sourceHanSerif = {
+  variable: '--font-serif-cjk',
+};
+
 // 字体 CSS 变量
-export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable}`;
+export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable} ${sourceHanSerif.variable}`;
 ```
 
 ```css
@@ -469,7 +475,16 @@ export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable}`;
 @theme {
   --font-display: var(--font-display), 'Georgia', serif;
   --font-body: var(--font-body), 'Inter', -apple-system, sans-serif;
+  --font-serif-cjk: var(--font-serif-cjk), 'Source Han Serif SC', 'Noto Serif CJK SC', serif;
   --font-code: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Source Han Serif @font-face（TTC 文件） */
+@font-face {
+  font-family: 'Source Han Serif SC';
+  src: url('/fonts/SourceHanSerif.ttc') format('truetype-collection');
+  font-weight: 100 900;
+  font-display: swap;
 }
 ```
 
@@ -1025,6 +1040,7 @@ class LLMService {
 | v1.0 | 2026-06-05 | 初始版本 |
 | v2.0 | 2026-06-05 | 更新：Next.js、字体系统、Agent 模式、提示词占位 |
 | v2.1 | 2026-06-05 | 新增：响应式设计规范、移动端适配策略 |
+| v2.2 | 2026-06-05 | 更新：字体系统配置完成，中文衬线体确认为思源宋体 |
 
 ---
 
