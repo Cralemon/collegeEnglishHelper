@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.1 | 2026-06-05 | 待确认
+> v3.2 | 2026-06-05 | 已确认
 
 ---
 
@@ -170,7 +170,7 @@
 
 | 层级 | 技术 | 说明 |
 |------|------|------|
-| 前端框架 | Next.js 15 + React 19 + TypeScript | App Router |
+| 前端框架 | Next.js 16 + React 19 + TypeScript | App Router, 静态导出 |
 | UI 框架 | Tailwind CSS 4 | 原子化 CSS |
 | 状态管理 | Zustand | 轻量级，支持持久化 |
 | 动画 | Framer Motion | 翻转、滑动 |
@@ -189,7 +189,7 @@
 | Rust / Cargo | ✅ 已安装 | 1.96.0 | rustup |
 | Visual Studio | ✅ 已安装 | Community 2026 | 官方安装器 |
 | Android Studio | ✅ 已安装 | — | JetBrains Toolbox |
-| Tauri CLI | ❌ 需安装 | — | cargo install tauri-cli |
+| Tauri CLI | ✅ 已安装 | 2.11.2 | pnpm (devDependency) |
 
 ### 3.3 字体系统
 
@@ -554,23 +554,28 @@ class LLMService {
 1. **逐步交付**：每步完成后应用可正常打开，关键功能可测试
 2. **To-Do 维护**：每步维护待办清单，验收后再推进
 3. **独立可测**：每步交付物独立可运行
+4. **仓库审查**：每步提交前必须审查仓库状态（`git status` + `git diff`），确认无遗漏、无误提交，再 commit
 
 ### 7.2 步骤
 
-#### Step 1：项目初始化
+#### Step 1：项目初始化 ✅
 
 **目标**：Next.js + Tauri 项目骨架
 
 **交付物**：
-- Next.js 15 (App Router) + Tailwind CSS 4 + TypeScript
+- Next.js 16 (App Router) + Tailwind CSS 4 + TypeScript
 - Tauri v2 基础配置
 - `pnpm dev` 和 `pnpm tauri dev` 可启动
 
 **To-Do**：
-- [ ] 初始化 Next.js 项目
-- [ ] 配置 Tailwind CSS 4
-- [ ] 初始化 Tauri v2
-- [ ] 验证开发服务器启动
+- [x] 初始化 Next.js 项目
+- [x] 配置 Tailwind CSS 4
+- [x] 初始化 Tauri v2
+- [x] 验证开发服务器启动
+- [x] 配置 `output: 'export'`（Tauri 静态导出）
+- [x] 整理 `.gitignore`（.idea/、public/fonts/、src-tauri/target/）
+
+> **注意**：字体文件已下载到 `public/fonts/` 但未提交 Git（在 `.gitignore` 中忽略）。首次 clone 后需手动复制字体文件。
 
 ---
 
@@ -832,7 +837,17 @@ git push origin develop --tags
 
 ## 九、附录
 
-### A. 参考资源
+### A. 项目文档
+
+| 文档 | 用途 |
+|------|------|
+| `FINAL_PLAN.md` | 开发规划（本文档） |
+| `AGENTS.md` | Agent 指令（Next.js 版本注意事项） |
+| `CLAUDE.md` | Claude Code 项目指令（指向 AGENTS.md） |
+| `DEVLOG.md` | 开发博客：Agent 开发思路与经验 |
+| `briefInstruction.md` | 原始需求简述 |
+
+### B. 参考资源
 
 - Claude 设计规范：`awesome-design-md/design-md/claude/DESIGN.md`
 - Next.js：https://nextjs.org
@@ -840,7 +855,7 @@ git push origin develop --tags
 - Framer Motion：https://www.framer.com/motion
 - Recharts：https://recharts.org
 
-### B. 版本历史
+### C. 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
@@ -851,3 +866,4 @@ git push origin develop --tags
 | v2.3 | 2026-06-05 | 版本管理规范 |
 | v3.0 | 2026-06-05 | 全文重构：精简冗余，细化功能描述，重组章节顺序 |
 | v3.1 | 2026-06-05 | 更新环境状态：Rust、VS、Android Studio 已安装 |
+| v3.2 | 2026-06-05 | Step 1 标记完成；修正技术栈版本（Next.js 16）；补充项目文档索引；新增 DEVLOG.md；新增仓库审查原则 |
