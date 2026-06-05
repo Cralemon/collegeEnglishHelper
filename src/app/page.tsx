@@ -26,7 +26,7 @@ export default function Home() {
 
   return (
     <main className="flex-1 p-4 md:p-8 lg:p-12">
-      <div className="mx-auto max-w-4xl space-y-12">
+      <div className="mx-auto max-w-4xl space-y-4 md:space-y-8 lg:space-y-12">
         {/* Header */}
         <header className="text-center">
           <h1 className="font-display text-display-lg text-ink">

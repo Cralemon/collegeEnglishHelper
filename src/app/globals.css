@@ -61,6 +61,9 @@
   --rounded-xl: 16px;
   --rounded-pill: 9999px;
   --rounded-full: 9999px;
+
+  /* ===== Shadows ===== */
+  --shadow-elevated: 0 0 24px rgba(20, 20, 19, 0.15);
 }
 
 /* ===== Dark theme ===== */
@@ -198,6 +201,11 @@
     font-size: 14px;
     font-weight: 500;
     line-height: 1.4;
+  }
+
+  /* Shadow: elevated card */
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
   }
 }
 

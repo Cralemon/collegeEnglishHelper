@@ -6,14 +6,14 @@ const cardVariants = cva('font-body text-ink transition-colors', {
   variants: {
     variant: {
       default: 'bg-surface-card border border-hairline',
-      elevated: 'bg-surface-card shadow-md',
+      elevated: 'bg-surface-card shadow-elevated',
       outlined: 'bg-transparent border-2 border-hairline',
       filled: 'bg-canvas',
     },
     size: {
-      sm: 'p-3 rounded-sm',
-      md: 'p-4 rounded-md',
-      lg: 'p-6 rounded-lg',
+      sm: 'p-3 rounded-lg',
+      md: 'p-4 rounded-lg',
+      lg: 'p-6 rounded-xl',
     },
   },
   defaultVariants: {
