@@ -1,26 +1,63 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import 'tailwindcss';
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ===== Font families ===== */
+  --font-display: var(--font-eb-garamond), Georgia, serif;
+  --font-body: var(--font-sarasa-gothic), Inter, sans-serif;
+  --font-serif-cjk: SimSun, 'Songti SC', serif;
+  --font-code: 'JetBrains Mono', monospace;
+
+  /* ===== Color system (Claude style) ===== */
+  /* Primary - Coral */
+  --color-primary: #cc785c;
+  --color-primary-active: #a9583e;
+  --color-primary-disabled: #e6dfd8;
+
+  /* Canvas & Surface */
+  --color-canvas: #faf9f5;
+  --color-surface-card: #efe9de;
+  --color-surface-dark: #181715;
+
+  /* Text */
+  --color-ink: #141413;
+  --color-body: #3d3d3a;
+  --color-muted: #6c6a64;
+
+  /* Border */
+  --color-hairline: #e6dfd8;
+
+  /* Semantic */
+  --color-success: #5db872;
+  --color-warning: #d4a017;
+  --color-error: #c64545;
+
+  /* ===== Spacing system ===== */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-section: 96px;
+
+  /* ===== Border radius ===== */
+  --rounded-xs: 4px;
+  --rounded-sm: 6px;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --rounded-xl: 16px;
+  --rounded-pill: 9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ===== Dark theme ===== */
+.dark {
+  --color-canvas: #181715;
+  --color-surface-card: #252320;
+  --color-surface-dark: #faf9f5;
+  --color-ink: #faf9f5;
+  --color-body: #a09d96;
+  --color-muted: #6c6a64;
+  --color-hairline: #3d3d3a;
+  --color-primary-disabled: #3d3d3a;
 }
