@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
 
-const cardVariants = cva('font-body text-ink transition-colors', {
+const cardVariants = cva('font-body text-ink transition-colors space-y-2', {
   variants: {
     variant: {
       default: 'bg-surface-card border border-hairline',
@@ -87,7 +87,7 @@ CardDescription.displayName = 'CardDescription';
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn('pt-2', className)} {...props} />
+      <div ref={ref} className={cn('', className)} {...props} />
     );
   }
 );

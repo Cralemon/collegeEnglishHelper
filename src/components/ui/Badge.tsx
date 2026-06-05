@@ -15,9 +15,9 @@ const badgeVariants = cva(
         outline: 'bg-transparent text-ink border border-hairline',
       },
       size: {
-        sm: 'px-2 py-0.5 text-xs rounded-sm',
-        md: 'px-2.5 py-1 text-sm rounded-md',
-        lg: 'px-3 py-1.5 text-body-md rounded-lg',
+        sm: 'px-2 py-0.5 text-xs rounded-pill',
+        md: 'px-2.5 py-1 text-sm rounded-pill',
+        lg: 'px-3 py-1.5 text-body-md rounded-pill',
       },
     },
     defaultVariants: {
