@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { fontVariables } from '@/styles/fonts';
 import { ThemeScript } from '@/components/ThemeScript';
+import { AppLayout } from '@/components/layout';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,7 +20,9 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col font-body bg-canvas text-ink">
-        {children}
+        <AppLayout>
+          {children}
+        </AppLayout>
       </body>
     </html>
   );

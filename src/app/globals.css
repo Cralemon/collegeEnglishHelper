@@ -66,6 +66,9 @@
 
   /* ===== Shadows ===== */
   --shadow-elevated: 0 0 24px rgba(20, 20, 19, 0.15);
+
+  /* ===== Navigation ===== */
+  --nav-pill-radius: 9999px;
 }
 
 /* ===== Dark theme ===== */

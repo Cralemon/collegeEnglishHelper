@@ -19,3 +19,5 @@ export type { BadgeProps } from './Badge';
 
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './Tabs';
+
+export { IconPractice, IconReview, IconSettings, IconMenu, IconClose } from './Icons';
