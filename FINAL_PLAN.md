@@ -372,7 +372,7 @@ export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable}`;
 
 | 组件 | 移动端 (< 768px) | 平板 (768-1023px) | 桌面 (≥ 1024px) |
 |------|------------------|-------------------|-----------------|
-| TopNav | 汉堡菜单 + 抽屉 | 紧凑水平导航 | 完整导航 |
+| BottomNav | 底部水平 pill（全宽） | 左/右侧垂直 pill（居中） | 左/右侧垂直 pill（居中） |
 | 练习卡片 | 全宽堆叠 | 居中留白 | 最大 640px |
 | 统计卡片 | 单列 | 2 列 | 3 列 |
 | 改进点 | 可折叠列表 | 可折叠列表 | 3 列 Tab |
@@ -594,6 +594,10 @@ class LLMService {
 - Button、Card、Input、Badge、Tabs 组件
 - 浅色/深色主题切换
 - 响应式断点配置
+- 底部 Pill 导航栏组件（BottomNav，多端统一：移动端底部水平，平板+侧边垂直）
+- `--nav-pill-radius` CSS 变量（默认 `9999px`，pill 形态）
+- `useNavRadius` Hook（localStorage 持久化导航圆角）
+- `useNavPosition` Hook（localStorage 持久化导航位置：左/右）
 
 **To-Do**：
 - [x] 复制字体到 public/fonts/
@@ -602,26 +606,28 @@ class LLMService {
 - [x] 实现 5 个基础组件
 - [x] 实现主题切换
 - [x] 创建设计预览页面
+- [x] 实现 `--nav-pill-radius` CSS 变量 + `useNavRadius` Hook
+- [x] 实现 `useNavPosition` Hook
+- [x] 实现 BottomNav 底部导航组件
 
 ---
 
 #### Step 3：布局与导航
 
-**目标**：主布局 + 路由 + 响应式导航
+**目标**：主布局 + 路由 + 底部导航
 
 **交付物**：
-- TopNav（桌面水平导航 + 移动端汉堡菜单）
-- AppLayout（响应式容器）
+- AppLayout（响应式容器 + 底部 padding 预留导航空间）
+- 底部 Pill 导航栏（BottomNav，多端统一，覆盖式悬浮）
 - 三个页面路由（首页/回顾/设置）
-- 移动端抽屉导航
+- 占位页面
 
 **To-Do**：
-- [ ] 实现 TopNav + 汉堡菜单
-- [ ] 实现 AppLayout
-- [ ] 实现移动端抽屉导航
-- [ ] 配置路由
-- [ ] 创建占位页面
-- [ ] 验证页面切换
+- [x] 实现 AppLayout（内容区 + 底部 padding）
+- [x] 实现 BottomNav（底部 pill 导航，圆角可配置）
+- [x] 配置路由（/、/review、/settings）
+- [x] 创建占位页面（回顾/设置）
+- [x] 验证页面切换
 
 ---
 
@@ -734,12 +740,16 @@ class LLMService {
 - ProfileForm（响应式）
 - LLMSettings
 - ThemeSwitcher
+- NavRadiusSlider（底部导航圆角预览式调整，实时预览 pill → 直角变化）
+- NavPositionSwitch（大尺寸屏幕导航位置切换：左侧/右侧）
 - 设置持久化
 
 **To-Do**：
 - [ ] 实现 ProfileForm
 - [ ] 实现 LLMSettings
 - [ ] 实现 ThemeSwitcher
+- [ ] 实现 NavRadiusSlider（滑块 + 实时预览，范围 0px ~ 9999px）
+- [ ] 实现 NavPositionSwitch（左/右切换 + 实时预览）
 - [ ] 实现持久化
 - [ ] 验证设置
 
@@ -877,3 +887,7 @@ git push origin develop --tags
 | v3.4 | 2026-06-05 | 新增 DEVLOG 同频更新原则；重写 DEVLOG.md 修正阶段描述 |
 | v3.5 | 2026-06-05 | 新增原则：Step 内细分，逐步完成 |
 | v3.6 | 2026-06-05 | Step 2 完成；新增原则：最小变更原则；更新 DEVLOG 迭代优化记录 |
+| v3.7 | 2026-06-05 | 重构导航方案：TopNav+汉堡菜单 → 底部 Pill 导航（多端统一）；Step 2 新增 BottomNav/`--nav-pill-radius`/`useNavRadius`；Step 3 更新交付物；Step 9 新增 NavRadiusSlider；更新组件适配策略 |
+| v3.8 | 2026-06-05 | BottomNav 响应式优化：移动端底部水平 → 平板+侧边垂直居中；新增 `useNavPosition` Hook（左/右位置持久化）；活跃标签 30% 主题色 pill 背景；导航标签字号缩小（11px） |
+| v3.9 | 2026-06-05 | BottomNav 四项修复：移动端间距统一（移除 mx-1.5，改用 gap）；字号进一步缩小（10px）；hover/active 圆角动态计算（radius - padding）；撤销滑动指示器，恢复直接背景实现 |
+| v3.10 | 2026-06-05 | BottomNav 字号调整为 12px（`text-xs`）；删除 `globals.css` 中未使用的 `.text-caption-small`；新增 `AGENTS.md` 行为规范 |

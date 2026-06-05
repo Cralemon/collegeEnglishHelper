@@ -1,22 +1,3 @@
-# 项目交接提示词
-
-> 用于初始化下一个 Agent Session
-
----
-
-## 使用方法
-
-将以下提示词复制到新的 Claude Code 会话中：
-
----
-
-```
-# 项目交接：大学英语翻译练习助手
-
-## 你是谁
-
-你是一个 AI 开发 Agent，接手一个已在进行中的项目。你的职责是按照规划文档逐步实现功能，每步完成后等待人类验收再推进。
-
 ## 项目概况
 
 - **产品**：大学英语翻译练习助手（卡片式翻译练习 + AI 反馈）
@@ -29,7 +10,6 @@
 
 - **Step 1（项目初始化）已完成** — Next.js 16 + Tailwind CSS 4 + Tauri v2 骨架就位
 - **Step 2（设计系统与字体）已完成** — Claude 设计系统 + 字体 + 5 个基础组件
-- **下一步：Step 3（布局与导航）** — TopNav + AppLayout + 路由
 
 ## 你必须先做的事
 
@@ -51,33 +31,6 @@
 7. **DEVLOG 同频更新** — 每次有意义的提交，同步更新 `DEVLOG.md`
 8. **最小变更原则** — 修改时避免影响无关内容，不要回退已有的正确调整
 
-## 语言
-
-- 代码注释：英文
-- 文档/DEVLOG：中文
-- Git 提交信息：英文（Conventional Commits 格式）
-- 与人类对话：中文
-
-## Step 2 完成总结
-
-Step 2 已完成，包含以下内容：
-
-### 已实现
-
-1. **字体配置**：EB Garamond + Sarasa Gothic（next/font/local）+ Source Han Serif（@font-face）
-2. **CSS 变量**：Claude 设计系统的色彩/间距/圆角/排版层级
-3. **主题切换**：useTheme Hook + 防闪烁脚本
-4. **UI 组件**：Button、Card、Input、Badge、Tabs（使用 CVA 管理变体）
-5. **设计预览页面**：展示所有设计元素
-
-### 关键技术决策
-
-- 使用 `@theme`（非 `@theme inline`）覆盖 Tailwind 默认值
-- 排版工具类在 `@layer utilities` 中定义
-- Card 使用 `space-y-2` 自动处理子元素间距
-- 所有按钮使用 `rounded-md`（8px）
-- 所有 Badge 使用 `rounded-pill`（9999px）
-
 ### 已知问题
 
 无
@@ -85,7 +38,6 @@ Step 2 已完成，包含以下内容：
 ## 开始工作
 
 请先阅读上述文件，然后向人类确认你已理解项目状态和下一步任务（Step 3）。等待人类指示后再动手。
-```
 
 ---
 
@@ -95,7 +47,6 @@ Step 2 已完成，包含以下内容：
 |------|------|------|
 | Step 1 | ✅ | 项目初始化 |
 | Step 2 | ✅ | 设计系统与字体 |
-| Step 3 | ⏳ | 布局与导航（下一步） |
 | Git 分支 | `develop` | 开发主线 |
 | 里程碑标签 | `milestone/step-1`, `milestone/step-2` | 已创建 |
 | 字体文件 | `public/fonts/` | 已配置（EB Garamond, Sarasa Gothic, Source Han Serif） |

@@ -208,6 +208,122 @@ Agent：执行（写代码、改配置）
 
 ---
 
+### Step 3：布局与导航 ✅
+
+**执行者**：Agent
+**日期**：2026-06-05
+
+#### 方案演进
+
+初始方案为 TopNav（桌面水平导航）+ MobileDrawer（移动端抽屉），后经用户决策重构为底部 Pill 导航栏。
+
+**重构原因**：多端统一体验，避免移动端/桌面端导航割裂。
+
+**最终方案**：
+- 底部固定 Pill 导航栏（BottomNav）
+- 多端统一：移动端内容区全宽，PC 端跟随内容最大宽度
+- 圆角可配置：`--nav-pill-radius` CSS 变量，默认 `9999px`（pill 形态）
+- `useNavRadius` Hook：localStorage 持久化圆角值
+- 覆盖式悬浮：导航栏覆盖在所有内容之上，内容区底部 padding 预留空间
+
+#### 实现内容
+
+| 子任务 | 文件 | 说明 |
+|--------|------|------|
+| useNavRadius | `src/hooks/useNavRadius.ts` | localStorage 持久化导航圆角 |
+| CSS 变量 | `src/app/globals.css` | `--nav-pill-radius: 9999px` |
+| BottomNav | `src/components/layout/BottomNav.tsx` | 底部 pill 导航，动态圆角 |
+| AppLayout | `src/components/layout/AppLayout.tsx` | 简化为内容区 + 底部 padding |
+| 占位页面 | `src/app/review/page.tsx`、`src/app/settings/page.tsx` | 回顾/设置占位 |
+
+#### 已删除文件
+
+| 文件 | 原因 |
+|------|------|
+| `src/components/layout/TopNav.tsx` | 被 BottomNav 替代 |
+| `src/components/layout/MobileDrawer.tsx` | 被 BottomNav 替代 |
+
+#### 关键决策
+
+1. **圆角默认值**：`9999px`（pill 形态），用户可在设置中调整
+2. **存储键**：`ueh_nav_radius`（与 FINAL_PLAN 的 localStorage 键名一致）
+3. **导航高度预留**：`pb-24`（96px）为内容区底部 padding
+4. **悬浮方式**：`fixed bottom-0` + `pointer-events-none`（容器）/ `pointer-events-auto`（导航本体）
+
+#### 迭代优化
+
+**用户反馈**：
+1. 导航标签字号过大
+2. 平板+屏幕应使用侧边垂直导航
+3. 活跃标签应使用 30% 主题色 pill 背景
+
+**响应式布局演进**：
+- 移动端（<768px）：底部水平 pill，内容区全宽
+- 平板+（≥768px）：侧边垂直 pill，左/右侧居中，72px 宽
+
+**新增文件**：
+| 文件 | 说明 |
+|------|------|
+| `src/hooks/useNavPosition.ts` | 导航位置 Hook（左/右，localStorage 持久化） |
+
+**修改文件**：
+| 文件 | 变更 |
+|------|------|
+| `src/components/layout/BottomNav.tsx` | 响应式布局 + 活跃标签样式 + 字号缩小 |
+| `src/components/layout/AppLayout.tsx` | 响应式 padding（移动端底部预留，平板+左侧预留） |
+| `src/app/globals.css` | 新增 `text-caption-small` 工具类（11px） |
+
+**存储键**：`ueh_nav_position`（`left` / `right`）
+
+#### 迭代优化 2
+
+**用户反馈**：
+1. 移动端底部导航活跃 tab 与父容器间距不统一（`mx-1.5` 残留）
+2. 导航标签字号仍过大（11px）
+3. hover 效果圆角应与父容器动态匹配
+4. 滑动指示器 transition 未生效，要求撤销
+
+**问题分析**：
+
+| # | 根因 | 修复 |
+|---|------|------|
+| 1 | link 上 `mx-1.5` 在移动端未移除，桌面端已修但遗漏 | 移除 `mx-1.5`，容器统一用 `gap-1.5`（移动）/ `gap-1`（桌面） |
+| 2 | `text-caption-small`（11px）仍偏大 | 改为 `text-[10px] font-medium` |
+| 3 | hover 使用固定 `rounded-lg`（12px），未随父容器圆角计算 | `style={{ borderRadius: Math.max(0, radius - padding) }}` |
+| 4 | `ResizeObserver` + 绝对定位指示器方案过于复杂，transition 在响应式切换时不可靠 | 移除指示器 div/refs/state/effect，恢复直接背景 |
+
+**删除内容**：
+- `globals.css` 中 `.nav-indicator-transition` 类及 `@media` 覆盖
+- BottomNav 中 `containerRef`、`itemRefs`、`indicatorStyle`、`calculateIndicator`、`useEffect`
+
+**关键经验**：
+1. 迭代修改时需检查所有断点，避免修复一个断点遗漏另一个
+2. 过渡动画方案需评估响应式布局切换场景的可靠性，不稳定的方案应及时回退
+3. 圆角等视觉属性应随父容器动态计算，避免硬编码固定值
+
+---
+
+## 迭代优化 3（v3.10）
+
+**触发**：用户反馈 + 冗余代码检查
+
+**问题分析**：
+
+| # | 问题 | 根因 | 修复 |
+|---|------|------|------|
+| 1 | `.text-caption-small`（11px）在 globals.css 中定义但从未被任何组件引用 | Step 3 迭代中先定义了 CSS class，后改用 Tailwind 任意值 `text-[10px]`，旧 class 未清理 | 删除该 class |
+| 2 | BottomNav 标签字号 10px 过小 | v3.9 从 11px 缩至 10px，过度修正 | 改为 `text-xs`（12px） |
+| 3 | AGENTS.md 缺少项目级行为规范 | 仅有 Next.js agent rules，缺少 FINAL_PLAN 中的协作原则 | 从 FINAL_PLAN §7.1 提取关键规范写入 AGENTS.md |
+
+**删除内容**：
+- `globals.css` 中 `.text-caption-small` 类（178-183 行）
+
+**修改内容**：
+- `BottomNav.tsx`：`text-[10px]` → `text-xs`
+- `AGENTS.md`：追加最小变更原则、Step 内细分、仓库审查、DEVLOG 同频更新、版本管理、提交规范、不擅改未要求内容
+
+---
+
 ## Agent 协作原则（持续更新）
 
 ### 原则 1：先规划，后执行
@@ -309,7 +425,7 @@ Agent：执行（写代码、改配置）
 |------|------|------|
 | Step 1：项目初始化 | ✅ 手动完成 | Next.js 16 + Tailwind CSS 4 + Tauri v2 |
 | Step 2：设计系统与字体 | ✅ Agent 完成 | Claude 设计系统 + 字体 + 5 个基础组件 |
-| Step 3：布局与导航 | ⏳ 下一步 | TopNav + AppLayout + 路由 |
+| Step 3：布局与导航 | ✅ Agent 完成 | AppLayout + 底部 Pill 导航 + 路由 |
 | Step 4-10 | 待开始 | — |
 
 ---
