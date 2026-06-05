@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.0 | 2026-06-05 | 待确认
+> v3.1 | 2026-06-05 | 待确认
 
 ---
 
@@ -182,12 +182,14 @@
 
 ### 3.2 环境依赖
 
-| 依赖 | 状态 | 安装方式 |
-|------|------|----------|
-| Node.js 24.15.0 | ✅ 已安装 | fnm |
-| pnpm 10.33.2 | ✅ 已安装 | corepack |
-| Rust / Cargo | ❌ 需安装 | rustup |
-| Tauri CLI | ❌ 需安装 | cargo install tauri-cli |
+| 依赖 | 状态 | 版本 | 安装方式 |
+|------|------|------|----------|
+| Node.js | ✅ 已安装 | 24.15.0 | fnm |
+| pnpm | ✅ 已安装 | 10.33.2 | corepack |
+| Rust / Cargo | ✅ 已安装 | 1.96.0 | rustup |
+| Visual Studio | ✅ 已安装 | Community 2026 | 官方安装器 |
+| Android Studio | ✅ 已安装 | — | JetBrains Toolbox |
+| Tauri CLI | ❌ 需安装 | — | cargo install tauri-cli |
 
 ### 3.3 字体系统
 
@@ -848,3 +850,4 @@ git push origin develop --tags
 | v2.2 | 2026-06-05 | 字体配置完成（思源宋体） |
 | v2.3 | 2026-06-05 | 版本管理规范 |
 | v3.0 | 2026-06-05 | 全文重构：精简冗余，细化功能描述，重组章节顺序 |
+| v3.1 | 2026-06-05 | 更新环境状态：Rust、VS、Android Studio 已安装 |
