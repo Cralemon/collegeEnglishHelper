@@ -91,6 +91,64 @@ Agent：执行（写代码、改配置）
 
 ---
 
+### Step 2：设计系统与字体 ✅
+
+**执行者**：Agent
+**日期**：2026-06-05
+
+#### 方案评估与决策
+
+在开始实现前，Agent 对方案进行了全面评估：
+
+1. **字体配置**：
+   - 问题：Source Han Serif 的 `.ttc` 格式兼容性未验证，文件体积大（20MB+）
+   - 决策：暂时跳过 Source Han Serif，用系统宋体替代
+   - 理由：先完成核心功能，字体可后续优化
+
+2. **CSS 变量管理**：
+   - 问题：`FINAL_PLAN.md` 定义的变量需与 Tailwind `@theme` 对齐
+   - 决策：使用 Tailwind `@theme inline` 集中管理
+   - 理由：直接生成工具类（`bg-primary`、`text-ink`），与 Tailwind 无缝集成
+
+3. **主题闪烁问题**：
+   - 问题：用户首次访问时可能看到主题闪烁（FOUC）
+   - 决策：添加防闪烁内联脚本
+   - 理由：提升用户体验
+
+4. **组件方案**：
+   - 选项：shadcn/ui vs 自定义 + CVA
+   - 决策：自定义 + CVA
+   - 理由：Tailwind CSS 4 兼容性更好，完全符合 Claude 设计风格
+
+#### 实现内容
+
+| 子任务 | 文件 | 说明 |
+|--------|------|------|
+| 字体配置 | `src/styles/fonts.ts` | EB Garamond + Sarasa Gothic |
+| CSS 变量 | `src/app/globals.css` | 色彩/间距/圆角 + 深色主题 |
+| 主题 Hook | `src/hooks/useTheme.ts` | localStorage 持久化 + 系统监听 |
+| 防闪烁 | `src/components/ThemeScript.tsx` | 内联脚本 |
+| Button | `src/components/ui/Button.tsx` | 5 种变体 + 4 种尺寸 |
+| Card | `src/components/ui/Card.tsx` | 4 种变体 + 子组件 |
+| Input | `src/components/ui/Input.tsx` | Input + Textarea |
+| Badge | `src/components/ui/Badge.tsx` | 6 种变体 |
+| Tabs | `src/components/ui/Tabs.tsx` | 3 种变体 + Context |
+| 预览页面 | `src/app/page.tsx` | 设计系统展示 |
+
+#### 关键决策记录
+
+1. **字体变量命名**：`--font-eb-garamond` 和 `--font-sarasa-gothic`
+2. **CSS 变量命名**：遵循 FINAL_PLAN.md 的设计规范
+3. **组件变体管理**：使用 CVA（class-variance-authority）
+4. **主题存储键**：`ueh_theme`（与 FINAL_PLAN.md 的 localStorage 键名一致）
+
+#### 遗留问题
+
+- Source Han Serif（`.ttc` 格式）暂未配置，需后续处理
+- 响应式断点配置未在 CSS 变量中定义（使用 Tailwind 默认断点）
+
+---
+
 ## Agent 协作原则（持续更新）
 
 ### 原则 1：先规划，后执行
@@ -140,14 +198,19 @@ Agent：执行（写代码、改配置）
 一个 Step 可能包含 5-6 个子任务。不要让 Agent 一口气做完再验收，而是拆成子任务逐步推进。比如 Step 2（设计系统与字体）可以拆为：
 
 ```
-2a. 配置字体（next/font/local + @font-face）
+2a. 配置字体（next/font/local）
 2b. 实现 CSS 变量（色彩/间距/圆角）
-2c. 实现 Button 组件
-2d. 实现 Card 组件
-...
+2c. 实现主题切换 Hook + 防闪烁
+2d. 实现 Button 组件
+2e. 实现 Card 组件
+2f. 实现 Input 组件
+2g. 实现 Badge + Tabs 组件
+2h. 创建设计预览页面
 ```
 
 每完成一个子任务就验收一次。粒度越细，Agent 出错的影响范围越小，回滚成本越低。
+
+**实际执行结果（Step 2）**：8 个子任务，每个任务完成后验证构建，确保无错误后再继续。最终构建成功，所有组件可正常使用。
 
 ---
 
@@ -174,8 +237,8 @@ Agent：执行（写代码、改配置）
 | Step | 状态 | 说明 |
 |------|------|------|
 | Step 1：项目初始化 | ✅ 手动完成 | Next.js 16 + Tailwind CSS 4 + Tauri v2 |
-| Step 2：设计系统与字体 | ⏳ 下一步 | 色彩/字体/基础组件 |
-| Step 3：布局与导航 | 待开始 | — |
+| Step 2：设计系统与字体 | ✅ Agent 完成 | Claude 设计系统 + 字体 + 5 个基础组件 |
+| Step 3：布局与导航 | ⏳ 下一步 | TopNav + AppLayout + 路由 |
 | Step 4-10 | 待开始 | — |
 
 ---

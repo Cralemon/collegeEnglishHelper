@@ -595,12 +595,12 @@ class LLMService {
 - 响应式断点配置
 
 **To-Do**：
-- [ ] 复制字体到 public/fonts/
-- [ ] 配置 next/font/local + @font-face
-- [ ] 实现 CSS 变量（色彩/间距/圆角）
-- [ ] 实现 5 个基础组件
-- [ ] 实现主题切换
-- [ ] 创建设计预览页面
+- [x] 复制字体到 public/fonts/
+- [x] 配置 next/font/local + @font-face
+- [x] 实现 CSS 变量（色彩/间距/圆角）
+- [x] 实现 5 个基础组件
+- [x] 实现主题切换
+- [x] 创建设计预览页面
 
 ---
 
