@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 最终开发规划
 
-> 版本：v2.2 | 日期：2026-06-05 | 状态：待确认
+> 版本：v2.3 | 日期：2026-06-05 | 状态：待确认
 
 ---
 
@@ -1033,7 +1033,117 @@ class LLMService {
 - Framer Motion：https://www.framer.com/motion
 - Recharts：https://recharts.org
 
-### B. 版本历史
+### B. 版本管理规范
+
+#### B.1 Git 分支策略
+
+```
+main (保护分支)
+  ├── develop (开发主线)
+  │   ├── feature/step-1-project-init
+  │   ├── feature/step-2-design-system
+  │   ├── feature/step-3-layout-nav
+  │   └── ...
+  ├── hotfix/xxx (紧急修复)
+  └── release/v1.0 (发布分支)
+```
+
+| 分支 | 用途 | 命名规范 | 合并目标 |
+|------|------|----------|----------|
+| `main` | 生产环境，保护分支 | — | — |
+| `develop` | 开发主线 | `develop` | `main` |
+| `feature/*` | 功能开发 | `feature/step-{n}-{description}` | `develop` |
+| `hotfix/*` | 紧急修复 | `hotfix/{description}` | `main` + `develop` |
+| `release/*` | 版本发布 | `release/v{version}` | `main` |
+
+#### B.2 提交规范 (Conventional Commits)
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+| Type | 说明 | 示例 |
+|------|------|------|
+| `feat` | 新功能 | `feat(practice): add flashcard flip animation` |
+| `fix` | Bug 修复 | `fix(llm): handle malformed JSON response` |
+| `chore` | 构建/工具变更 | `chore: configure Tailwind CSS 4` |
+| `docs` | 文档更新 | `docs: update FINAL_PLAN.md v2.3` |
+| `style` | 代码格式（不影响逻辑） | `style: format with prettier` |
+| `refactor` | 重构（非新功能/修复） | `refactor(storage): extract localStorage utils` |
+| `perf` | 性能优化 | `perf: lazy load chart components` |
+| `test` | 测试相关 | `test: add unit tests for score calculation` |
+| `build` | 构建系统变更 | `build(tauri): configure app icon` |
+| `ci` | CI/CD 变更 | `ci: add GitHub Actions workflow` |
+
+#### B.3 版本号规范 (Semantic Versioning)
+
+```
+v{MAJOR}.{MINOR}.{PATCH}
+```
+
+| 变更类型 | 版本变化 | 示例 |
+|----------|----------|------|
+| 不兼容的 API 变更 | MAJOR +1 | v1.0.0 → v2.0.0 |
+| 向后兼容的新功能 | MINOR +1 | v1.0.0 → v1.1.0 |
+| 向后兼容的 Bug 修复 | PATCH +1 | v1.0.0 → v1.0.1 |
+
+#### B.4 标签规范
+
+```bash
+# 版本标签
+git tag -a v1.0.0 -m "Release v1.0.0: initial release"
+
+# 里程碑标签
+git tag -a milestone/step-1 -m "Step 1: Project initialization complete"
+```
+
+#### B.5 工作流示例
+
+```bash
+# 开始新步骤
+git checkout develop
+git checkout -b feature/step-1-project-init
+
+# 开发过程中
+git add .
+git commit -m "feat: initialize Next.js project"
+git commit -m "chore: configure Tailwind CSS 4"
+git commit -m "feat: add Tauri configuration"
+
+# 步骤完成，合并到 develop
+git checkout develop
+git merge --no-ff feature/step-1-project-init
+git tag -a milestone/step-1 -m "Step 1 complete: project skeleton"
+git branch -d feature/step-1-project-init
+
+# 推送到远程
+git push origin develop --tags
+```
+
+#### B.6 回溯与追踪
+
+| 追踪对象 | 方式 | 说明 |
+|----------|------|------|
+| 功能变更 | `git log --oneline --grep="feat"` | 按类型筛选提交 |
+| 步骤进度 | `git tag -l "milestone/*"` | 查看里程碑标签 |
+| 版本历史 | `git tag -l "v*"` | 查看版本标签 |
+| 文件变更 | `git log --follow -- <file>` | 追踪单文件历史 |
+| 回滚操作 | `git revert <commit>` | 安全回滚（保留历史） |
+| 紧急回退 | `git reset --hard <tag>` | 强制回退（谨慎使用） |
+
+#### B.7 远程仓库
+
+| 仓库 | 地址 | 用途 |
+|------|------|------|
+| `origin` | `https://github.com/Cralmeon/collegeEnglishHelper.git` | 主远程仓库 |
+
+---
+
+### C. 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
@@ -1041,6 +1151,7 @@ class LLMService {
 | v2.0 | 2026-06-05 | 更新：Next.js、字体系统、Agent 模式、提示词占位 |
 | v2.1 | 2026-06-05 | 新增：响应式设计规范、移动端适配策略 |
 | v2.2 | 2026-06-05 | 更新：字体系统配置完成，中文衬线体确认为思源宋体 |
+| v2.3 | 2026-06-05 | 新增：版本管理规范、Git 分支策略、提交规范 |
 
 ---
 
