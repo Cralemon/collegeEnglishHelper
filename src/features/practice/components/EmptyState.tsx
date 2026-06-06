@@ -40,7 +40,7 @@ export function EmptyState({
       <CardFooter className="flex-col sm:flex-row gap-3 pt-2">
         <Button
           variant="secondary"
-          size="lg"
+          size="md"
           className="flex-1 w-full sm:w-auto"
           onClick={() => router.push('/settings')}
         >
@@ -48,7 +48,7 @@ export function EmptyState({
         </Button>
         <Button
           variant="primary"
-          size="lg"
+          size="md"
           className="flex-1 w-full sm:w-auto"
           loading={isGenerating}
           onClick={onGenerate}
