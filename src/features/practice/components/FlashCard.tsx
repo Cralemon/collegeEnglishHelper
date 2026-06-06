@@ -53,13 +53,13 @@ export function FlashCard({
     <div
       className={cn(
         'relative w-full max-w-[640px] mx-auto max-h-[700px]',
-        'flex-1 min-h-0 h-[calc(100dvh-12rem)]',
+        'flex-1 min-h-0 h-[calc(100dvh-13rem)]',
         '[perspective:1000px]',
         className,
       )}
     >
       <motion.div
-        drag={!isFlipped ? 'x' : false}
+        drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.3}
         onDragStart={() => { isDragging.current = true; }}
