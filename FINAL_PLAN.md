@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.5 | 2026-06-05 | 已确认
+> v3.13 | 2026-06-06 | 已确认
 
 ---
 
@@ -642,10 +642,10 @@ class LLMService {
 - 数据持久化
 
 **To-Do**：
-- [ ] 定义类型
-- [ ] 实现 localStorage 封装
-- [ ] 实现 3 个 stores
-- [ ] 验证持久化
+- [x] 定义类型
+- [x] 实现 localStorage 封装
+- [x] 实现 3 个 stores
+- [x] 验证持久化
 
 ---
 
@@ -767,6 +767,10 @@ class LLMService {
 - 响应式测试
 - 可分发应用
 
+**Tauri 平台适配**：
+1. **Android 安全区**：配置 `tauri.conf.json` 的 `app.android.safeArea`，适配状态栏和导航栏区域，避免内容被系统栏遮挡。需在 `AppLayout` 中使用 `env(safe-area-inset-*)` CSS 变量配合。
+2. **桌面端最小窗口**：配置 `tauri.conf.json` 的 `app.windows[].minWidth/minHeight`（建议 360×640），防止用户将窗口调整过小导致布局混乱。
+
 **To-Do**：
 - [ ] 配置 Android 打包（SDK、NDK、签名）
 - [ ] 配置 Windows 打包
@@ -774,6 +778,8 @@ class LLMService {
 - [ ] 实现懒加载
 - [ ] Android 端测试（竖屏 360-412px，横屏 640-926px）
 - [ ] Windows 端测试（1280px+）
+- [ ] 配置 Android 状态栏/导航栏安全区适配（`tauri.conf.json` → `app.android.safeArea`）
+- [ ] 配置桌面端最小窗口大小（`tauri.conf.json` → `app.windows[].minWidth/minHeight`，防止布局混乱）
 - [ ] 最终验收
 
 ---
@@ -893,3 +899,4 @@ git push origin develop --tags
 | v3.10 | 2026-06-05 | BottomNav 字号调整为 12px（`text-xs`）；删除 `globals.css` 中未使用的 `.text-caption-small`；新增 `AGENTS.md` 行为规范 |
 | v3.11 | 2026-06-05 | Step 3 标记完成；修复 Android APK 构建（签名配置位置、CLI 入口路径、JDK 版本、keyAlias）；Cargo.toml 添加 release 优化（strip/lto） |
 | v3.12 | 2026-06-05 | 字体优化：SourceHanSerif.ttc（163MB）→ WOFF2 子集（5MB）；Sarasa UI SC（134MB）→ WOFF2 子集（3MB）；移除 EB Garamond（待 WOFF2 补充）；APK 体积从 767MB 预计降至 ~15MB |
+| v3.13 | 2026-06-06 | Step 4 标记完成（状态管理与数据层）；Step 10 新增：Android 安全区适配、桌面端最小窗口大小 |

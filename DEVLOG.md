@@ -496,6 +496,37 @@ npx tauri android build --apk
 
 ---
 
+## Step 4：状态管理与数据层 ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 实现内容
+
+| 子任务 | 文件 | 说明 |
+|--------|------|------|
+| 安装 Zustand | `package.json` | zustand 5.0.14 |
+| 类型定义 | `src/types/index.ts` | Question, AnswerRecord, AIFeedback, Collection, UserProfile, LLMConfig, ImprovementPoint 等全部业务类型 |
+| localStorage 封装 | `src/services/storage.ts` | 类型安全的 storageGet/Set/Remove + Zustand persist 适配器 |
+| practiceStore | `src/features/practice/store.ts` | 题目列表、当前索引、草稿、作答记录、翻转状态、打乱顺序 |
+| reviewStore | `src/features/review/store.ts` | 改进点提取（去重+频率统计）、统计计算工具函数 |
+| settingsStore | `src/features/settings/store.ts` | 用户信息、LLM 配置、题集 CRUD、当前激活题集 |
+
+### 关键设计决策
+
+1. **Zustand 5 + persist 中间件**：使用 `partialize` 只持久化必要数据，临时状态（isEvaluating、isFlipped、draft）不持久化
+2. **reviewStore 的改进点提取**：`extractFromRecords` 为纯函数，从作答记录中提取改进点并按频率排序，使用 `dimension:content` 作为去重键
+3. **computeStatistics**：独立导出的纯函数，不依赖 store 状态，方便在组件中直接计算
+4. **settingsStore 合并管理**：用户信息、LLM 配置、题集统一在一个 store 中，使用单一 localStorage 键持久化
+
+### 新增需求（用户追加）
+
+在 Step 10 中新增两个 Tauri 平台适配需求：
+1. **Android 安全区适配**：配置 `app.android.safeArea`，适配状态栏/导航栏
+2. **桌面端最小窗口**：配置 `app.windows[].minWidth/minHeight`，防止布局混乱
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -503,7 +534,8 @@ npx tauri android build --apk
 | Step 1：项目初始化 | ✅ 手动完成 | Next.js 16 + Tailwind CSS 4 + Tauri v2 |
 | Step 2：设计系统与字体 | ✅ Agent 完成 | Claude 设计系统 + 字体 + 5 个基础组件 |
 | Step 3：布局与导航 | ✅ Agent 完成 | AppLayout + 底部 Pill 导航 + 路由 |
-| Step 4-10 | 待开始 | — |
+| Step 4：状态管理与数据层 | ✅ Agent 完成 | Zustand stores + localStorage + 类型定义 |
+| Step 5-10 | 待开始 | — |
 
 ---
 
