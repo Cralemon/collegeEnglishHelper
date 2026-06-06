@@ -19,7 +19,6 @@ export default function HomePage() {
 
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
-    // 模拟生成延迟
     await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
     const newQuestions = mockGenerateQuestions(userProfile, 10);
     setQuestions(newQuestions);
@@ -28,9 +27,9 @@ export default function HomePage() {
 
   if (questions.length === 0) {
     return (
-      <div className="flex flex-col h-full">
-        <h1 className="text-display-sm text-ink mb-6">翻译练习</h1>
-        <div className="flex-1 flex items-center justify-center min-h-0">
+      <div className="h-full flex flex-col">
+        <h1 className="text-display-sm text-ink mb-6 shrink-0">翻译练习</h1>
+        <div className="flex-1 min-h-0 flex items-center justify-center">
           <EmptyState
             isGenerating={isGenerating}
             onGenerate={handleGenerate}
@@ -41,9 +40,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <h1 className="text-display-sm text-ink mb-6">翻译练习</h1>
-      <div className="flex-1 min-h-0 overflow-y-auto">
+    <div className="h-full flex flex-col">
+      <h1 className="text-display-sm text-ink mb-6 shrink-0">翻译练习</h1>
+      <div className="flex-1 min-h-0">
         <FlashCard
           isFlipped={isFlipped}
           onFlip={setFlipped}

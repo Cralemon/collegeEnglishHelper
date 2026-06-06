@@ -12,7 +12,9 @@ function getDirectionLabel(direction: TranslationDirection): string {
 }
 
 /**
- * 卡片正面 — 题目展示 + 翻译输入 + 提交
+ * 卡片正面 — 题目 + 输入 + 提交
+ *
+ * 布局：固定头部 / textarea 满高 / 固定底部按钮
  */
 export function CardFront() {
   const {
@@ -55,9 +57,9 @@ export function CardFront() {
   if (!question) return null;
 
   return (
-    <div className="h-full flex flex-col p-6">
-      {/* 头部 */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+    <div className="h-full flex flex-col p-6 gap-4">
+      {/* 固定头部 */}
+      <div className="flex items-center justify-between shrink-0">
         <span className="text-caption-uppercase text-muted bg-surface-soft px-3 py-1 rounded-pill">
           {getDirectionLabel(direction)}
         </span>
@@ -66,25 +68,24 @@ export function CardFront() {
         </span>
       </div>
 
-      {/* 可滚动内容 */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
-        <p className="text-body-md text-ink leading-relaxed">
-          {question.sourceText}
-        </p>
+      {/* 原文 */}
+      <p className="text-body-md text-ink leading-relaxed shrink-0">
+        {question.sourceText}
+      </p>
+
+      {/* textarea 满高 */}
+      <div className="flex-1 min-h-0">
         <Textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="请输入你的翻译..."
-          className="min-h-[100px] resize-y"
+          className="h-full resize-none"
           disabled={isEvaluating}
         />
-        <p className="text-center text-caption text-muted-soft">
-          滑动卡片可切换题目
-        </p>
       </div>
 
-      {/* 固定底部 */}
-      <div className="pt-4 shrink-0">
+      {/* 固定底部按钮 */}
+      <div className="shrink-0">
         <Button
           variant="primary"
           className="w-full"
