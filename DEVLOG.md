@@ -447,6 +447,48 @@ npx tauri android build --apk
 
 ---
 
+## 设计规范对齐 & 主题风格重构
+
+### 背景
+
+新 Agent 交接后，首先阅读了 Claude 设计规范（`awesome-design-md/design-md/claude/DESIGN.md`），确认项目的视觉语言与 Claude 品牌一致。
+
+### 关键发现
+
+设计规范定义了一套完整的 **warm-canvas editorial** 风格：
+- 奶油色画布（#faf9f5）+ 珊瑚色主色（#cc785c）+ 深色产品表面（#181715）
+- 衬线显示字体（Copernicus/EB Garamond）+ 人文无衬线正文（StyreneB/Inter）
+- 色块优先的层次系统，极少使用阴影
+
+### 主题切换重构
+
+原方案中"主题切换"仅指浅色/深色/跟随系统。经澄清，主题切换应为**不同 UI 风格**的切换：
+
+| 主题风格 | 视觉特征 |
+|---------|---------|
+| Claude（默认） | 暖色调奶油画布 + 珊瑚主色 + 衬线标题 |
+| 微软 | Fluent Design 风格，Mica 材质，圆角卡片 |
+| 谷歌 | Material Design 3，动态色彩，大圆角 |
+| iOS | 毛玻璃效果，SF Pro 字体，极简线条 |
+
+同时保留独立的**外观模式**（浅色/深色/跟随系统），与主题风格叠加。
+
+### 数据模型变更
+
+`UserProfile` 中原 `theme` 字段拆分为：
+- `themeStyle`: `'claude' | 'microsoft' | 'google' | 'ios'` — UI 风格
+- `colorScheme`: `'light' | 'dark' | 'system'` — 外观模式
+
+### FINAL_PLAN.md 更新
+
+- v3.13 → v3.14
+- 设置页面线框图更新（主题风格 + 外观模式分两行）
+- 功能清单拆分为"主题风格"和"外观模式"两项
+- 数据模型更新
+- Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -455,7 +497,8 @@ npx tauri android build --apk
 | Step 2：设计系统与字体 | ✅ Agent 完成 | Claude 设计系统 + 字体 + 5 个基础组件 |
 | Step 3：布局与导航 | ✅ Agent 完成 | AppLayout + 底部 Pill 导航 + 路由 |
 | Step 4：状态管理与数据层 | ✅ Agent 完成 | Zustand stores + localStorage + 类型定义 |
-| Step 5-10 | 待开始 | — |
+| Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 3D 翻转 + 滑动手势 + 模拟反馈 |
+| Step 6-10 | 待开始 | — |
 
 ---
 

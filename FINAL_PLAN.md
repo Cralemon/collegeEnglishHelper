@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.13 | 2026-06-06 | 已确认
+> v3.15 | 2026-06-06 | Step 5 完成
 
 ---
 
@@ -142,7 +142,8 @@
 │  API Key：  [sk-••••••••]                               │
 │  模型：    [gpt-4o ▼]    [测试连接]                      │
 │                                                         │
-│  主题：[☀️ 浅色] [🌙 深色] [🎨 跟随系统]                │
+│  主题风格：[🤎 Claude] [🪟 微软] [🔵 谷歌] [🍎 iOS]      │
+│  外观：[☀️ 浅色] [🌙 深色] [🎨 跟随系统]                  │
 │                                                         │
 │  水平测试：通过简短测试评估英语水平  [开始测试]            │
 │                                                         │
@@ -156,7 +157,8 @@
 | 用户信息 | P0 | 昵称、学年段（大一~研三）、词汇量 |
 | 翻译偏好 | P0 | 单句/段落、中译英/英译中 |
 | LLM 配置 | P0 | API 地址、Key、模型选择、连接测试 |
-| 主题切换 | P1 | 浅色/深色/跟随系统 |
+| 主题风格 | P1 | Claude（默认）/ 微软 / 谷歌 / iOS，四套 UI 风格切换 |
+| 外观模式 | P1 | 浅色/深色/跟随系统，与主题风格独立叠加 |
 | 水平测试 | P2 | 评估英语水平的简短测试 |
 | 数据导入导出 | P2 | 备份和恢复 |
 
@@ -452,7 +454,10 @@ interface UserProfile {
   vocabularyLevel: number;
   translationMode: 'single' | 'paragraph';
   translationDirection: 'zh-en' | 'en-zh';
-  theme: 'light' | 'dark' | 'system';
+  /** 主题风格：不同 UI 视觉风格 */
+  themeStyle: 'claude' | 'microsoft' | 'google' | 'ios';
+  /** 外观模式：浅色/深色/跟随系统，与主题风格独立叠加 */
+  colorScheme: 'light' | 'dark' | 'system';
 }
 
 // LLM 配置
@@ -631,7 +636,7 @@ class LLMService {
 
 ---
 
-#### Step 4：状态管理与数据层
+#### Step 4：状态管理与数据层 ✅
 
 **目标**：Zustand stores + localStorage
 
@@ -649,24 +654,24 @@ class LLMService {
 
 ---
 
-#### Step 5：翻译练习核心
+#### Step 5：翻译练习核心 ✅
 
 **目标**：卡片式翻译练习交互
 
 **交付物**：
 - FlashCard（3D 翻转 + 滑动手势）
-- AnswerInput（移动端键盘适配）
-- PracticeCard（响应式布局）
+- CardFront（题目展示 + Textarea 输入 + 提交）
+- CardBack（ScoreDisplay + FeedbackPanel + 下一题）
 - 作答流程（输入→提交→翻转→查看）
-- 模拟 AI 反馈（占位数据）
+- 模拟 AI 反馈（mockFeedback 占位数据）
 
 **To-Do**：
-- [ ] 实现 FlashCard + 3D 翻转
-- [ ] 实现滑动手势
-- [ ] 实现 AnswerInput
-- [ ] 实现 PracticeCard
-- [ ] 实现模拟反馈
-- [ ] 验证作答流程
+- [x] 安装 framer-motion
+- [x] 实现 FlashCard + 3D 翻转
+- [x] 实现滑动手势
+- [x] 实现 CardFront + CardBack
+- [x] 实现模拟反馈
+- [x] 验证作答流程
 
 ---
 
@@ -739,7 +744,8 @@ class LLMService {
 **交付物**：
 - ProfileForm（响应式）
 - LLMSettings
-- ThemeSwitcher
+- ThemeStyleSwitcher（四套 UI 风格切换：Claude/微软/谷歌/iOS）
+- ColorSchemeSwitcher（浅色/深色/跟随系统）
 - NavRadiusSlider（底部导航圆角预览式调整，实时预览 pill → 直角变化）
 - NavPositionSwitch（大尺寸屏幕导航位置切换：左侧/右侧）
 - 设置持久化
@@ -747,7 +753,8 @@ class LLMService {
 **To-Do**：
 - [ ] 实现 ProfileForm
 - [ ] 实现 LLMSettings
-- [ ] 实现 ThemeSwitcher
+- [ ] 实现 ThemeStyleSwitcher（四套 UI 风格：Claude/微软/谷歌/iOS）
+- [ ] 实现 ColorSchemeSwitcher（浅色/深色/跟随系统）
 - [ ] 实现 NavRadiusSlider（滑块 + 实时预览，范围 0px ~ 9999px）
 - [ ] 实现 NavPositionSwitch（左/右切换 + 实时预览）
 - [ ] 实现持久化
@@ -900,3 +907,5 @@ git push origin develop --tags
 | v3.11 | 2026-06-05 | Step 3 标记完成；修复 Android APK 构建（签名配置位置、CLI 入口路径、JDK 版本、keyAlias）；Cargo.toml 添加 release 优化（strip/lto） |
 | v3.12 | 2026-06-05 | 字体优化：SourceHanSerif.ttc（163MB）→ WOFF2 子集（5MB）；Sarasa UI SC（134MB）→ WOFF2 子集（3MB）；移除 EB Garamond（待 WOFF2 补充）；APK 体积从 767MB 预计降至 ~15MB |
 | v3.13 | 2026-06-06 | Step 4 标记完成（状态管理与数据层）；Step 10 新增：Android 安全区适配、桌面端最小窗口大小 |
+| v3.14 | 2026-06-06 | 主题切换重构为两层：主题风格（Claude/微软/谷歌/iOS 四套 UI 风格）+ 外观模式（浅色/深色/跟随系统）；数据模型 `UserProfile` 拆分为 `themeStyle` + `colorScheme`；Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher |
+| v3.15 | 2026-06-06 | Step 5 标记完成（翻译练习核心）：FlashCard 3D 翻转 + 滑动手势 + CardFront/CardBack + ScoreDisplay/FeedbackPanel + mockFeedback 模拟反馈 |

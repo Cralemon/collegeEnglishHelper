@@ -71,7 +71,7 @@
   --nav-pill-radius: 9999px;
 }
 
-/* ===== Dark theme ===== */
+/* ===== Dark color scheme (applies to all theme styles) ===== */
 .dark {
   --color-canvas: #181715;
   --color-surface-soft: #1f1e1b;
