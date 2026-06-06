@@ -618,6 +618,37 @@ type IssueCategory =
 
 ---
 
+## Phase 5：数据结构重构 ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 目标
+
+将代码中的数据结构对齐 FINAL_PLAN.md §5.1（v2.1 新设计）。
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/types/index.ts` | 新增 IssueSeverity、IssueCategory（16 类）、Issue、KeyPointHandling、TranslationStrategy、WeakCategory、LearningData；DimensionFeedback 新增 issues/tips；AIFeedback 替换 summary 为 overallSuggestion 数组、新增 translationStrategy；ImprovementPoint 改用 category/mastery/recentIssueIds |
+| `src/features/practice/services/mockFeedback.ts` | 生成含 issues（category/severity）和 translationStrategy 的新结构模拟数据 |
+| `src/features/practice/components/FeedbackPanel.tsx` | 新增 IssueItem 组件（severity Badge）、StrategySection 组件（approach/keyPoints）；overallSuggestion 替代 summary |
+| `src/features/review/store.ts` | extractFromRecords 改为按 IssueCategory 聚合；新增 updateMastery action；category→dimension 映射函数；categoryDescription 中文映射 |
+
+### 关键设计决策
+
+1. **IssueItem 显示**：`userFragment` + severity Badge（error/warning/suggestion 对应不同颜色）+ suggestedFix + reason
+2. **StrategySection**：approach 用颜色区分（直译/意译/结合 → primary/amber/success）；keyPoints 展示原文、译文、评估等级
+3. **reviewStore 聚合键**：从 `dimension:content`（字符串文本）改为 `IssueCategory`（枚举），聚合更稳定
+4. **mastery 初始值**：新出现的 category 初始 mastery = 50，保持中性
+
+### 构建验证
+
+`pnpm run build` 通过，无类型错误。
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -627,7 +658,8 @@ type IssueCategory =
 | Step 3：布局与导航 | ✅ Agent 完成 | AppLayout + 底部 Pill 导航 + 路由 |
 | Step 4：状态管理与数据层 | ✅ Agent 完成 | Zustand stores + localStorage + 类型定义 |
 | Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 叠卡 + 3D 翻转 + 滑动手势 + 模拟反馈 + v2 迭代 |
-| Step 6-10 | 待开始 | — |
+| Phase 5：数据结构重构 | ✅ Agent 完成 | types/mockFeedback/FeedbackPanel/reviewStore 对齐新结构 |
+| Phase 6-10 | 待开始 | — |
 
 ---
 

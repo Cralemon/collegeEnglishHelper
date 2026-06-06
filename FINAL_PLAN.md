@@ -361,3 +361,4 @@ LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
 | v1.0 | 2026/06/05 | 初始版本 |
 | v2.0 | 2026/06/06 | 重新设计：精简架构、AI反馈三维评估、自适应布局、Radix UI、Tauri |
 | v2.1 | 2026/06/06 | AI反馈数据结构深化：新增 Issue 标准化分类、翻译策略维度、掌握度追踪、用户学习数据 |
+| v2.2 | 2026/06/06 | Phase 5 代码对齐：types/mockFeedback/FeedbackPanel/reviewStore 全部更新至新结构 |

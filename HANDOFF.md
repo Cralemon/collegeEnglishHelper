@@ -13,8 +13,8 @@
 | Phase 2：布局与导航 | ✅ | AppLayout + BottomNav + 路由 |
 | Phase 3：状态管理与数据层 | ✅ | Zustand stores + localStorage |
 | Phase 4：练习页核心 | ✅ | FlashCard 叠卡 + 3D 翻转 + 模拟反馈 |
-| Phase 5：数据结构重构 | ⬜ **下一步** | 对齐新设计的 AI 反馈结构 |
-| Phase 6：回顾页 | ⬜ | 统计 + 改进点列表 |
+| Phase 5：数据结构重构 | ✅ | 对齐新 AI 反馈结构（Issue/IssueCategory/TranslationStrategy） |
+| Phase 6：回顾页 | ⬜ **下一步** | 统计 + 改进点列表 |
 | Phase 7：设置页 | ⬜ | 用户信息 + 应用配置 |
 | Phase 8：LLM 集成 | ⬜ | 替换 mock 数据 |
 | Phase 9：学习闭环 | ⬜ | 用户画像 + 智能出题 |
@@ -26,65 +26,91 @@
 2. `FINAL_PLAN.md` — 完整开发规划（重点看 §5 数据结构 + §6 实施步骤）
 3. `awesome-design-md/design-md/claude/DESIGN.md` — Claude 设计规范（**必须遵守**）
 
-## 下一步：Phase 5 数据结构重构
+## 关键文件索引
+
+| 用途 | 路径 |
+|------|------|
+| 全局类型定义 | `src/types/index.ts` |
+| 练习页 Store | `src/features/practice/store.ts` |
+| 回顾页 Store | `src/features/review/store.ts` |
+| 设置 Store | `src/features/settings/store.ts` |
+| 模拟反馈生成 | `src/features/practice/services/mockFeedback.ts` |
+| 反馈面板组件 | `src/features/practice/components/FeedbackPanel.tsx` |
+| localStorage 封装 | `src/services/storage.ts` |
+| 底部导航 | `src/components/layout/BottomNav.tsx` |
+| 基础 UI 组件 | `src/components/ui/` |
+
+## Phase 5 实现摘要
+
+### 关键变更
+
+1. **类型定义**（`src/types/index.ts`）：
+   - 新增：`IssueSeverity`（3 级）、`IssueCategory`（16 类）、`Issue`、`KeyPointHandling`、`TranslationStrategy`、`WeakCategory`、`LearningData`
+   - `DimensionFeedback` 新增 `issues: Issue[]`、`tips?: string[]`
+   - `AIFeedback`：`summary` 替换为 `overallSuggestion: string[]`，新增 `translationStrategy`
+   - `ImprovementPoint`：`content/relatedQuestionIds` 替换为 `category/recentIssueIds/mastery`
+
+2. **模拟数据**（`mockFeedback.ts`）：每个维度生成 1-2 个带 category/severity 的 Issue，生成 TranslationStrategy（approach + keyPoints）
+
+3. **反馈面板**（`FeedbackPanel.tsx`）：新增 `IssueItem`（severity Badge + suggestedFix + reason）、`StrategySection`（approach 颜色区分 + keyPoints 列表）
+
+4. **回顾 Store**（`reviewStore.ts`）：`extractFromRecords` 改为按 `IssueCategory` 聚合；新增 `updateMastery` action；`categoryDescription` 中文映射
+
+## 下一步：Phase 6 回顾页
 
 ### 背景
 
-FINAL_PLAN.md §5 已重新设计 AI 反馈数据结构，但代码中的类型定义还是旧版。Phase 5 的目标是将代码对齐新设计。
+回顾页（`/review`）目前是空白占位。Phase 6 目标是展示练习统计数据和改进点列表，让用户看到自己的薄弱点。
 
-### 需要修改的文件
+### 需要修改/新建的文件
 
 | 文件 | 当前状态 | 目标 |
 |------|---------|------|
-| `src/types/index.ts` | 旧结构：`DimensionFeedback` 无 `issues` 字段 | 新增 Issue、IssueCategory、TranslationStrategy、LearningData 等类型 |
-| `src/features/practice/services/mockFeedback.ts` | 生成旧结构 | 生成符合新结构的模拟数据（含 issues、translationStrategy） |
-| `src/features/practice/components/FeedbackPanel.tsx` | 展示旧结构 | 展示 issues 列表（severity 标记）+ 翻译策略分析 |
-| `src/features/review/store.ts` | 基于 `improvements` 字符串聚合 | 基于 `Issue.category` 聚合，计算 mastery |
-
-### 新数据结构要点
-
-1. **Issue** 挂在 `DimensionFeedback.issues` 下，携带 `category`（16 个标准分类）和 `severity`（error/warning/suggestion）
-2. **TranslationStrategy** 新增维度，包含 approach、strengths、suggestions、keyPoints
-3. **ImprovementPoint** 按 `IssueCategory` 聚合，新增 `mastery` 字段（0-100）
-4. **LearningData** 用户学习数据，包含 weakCategories、recentTrend 等
+| `src/app/review/page.tsx` | 空白占位 | 回顾页完整 UI |
+| `src/features/review/store.ts` | 已有 extractImprovements + computeStatistics | 确认接口满足 UI 需求（无需大改） |
+| （新建）`src/features/review/components/` | 不存在 | StatsOverview、ImprovementList、ScoreTrendChart |
 
 ### 具体任务
 
-**Step 5.1：更新类型定义**
-- 在 `src/types/index.ts` 中新增：
-  - `IssueSeverity`：`'error' | 'warning' | 'suggestion'`
-  - `IssueCategory`：16 个标准化分类枚举
-  - `Issue`：userFragment、suggestedFix、reason、severity、category
-  - `FeedbackExample`：userFragment、suggestedFragment、reason
-  - `TranslationStrategy`、`KeyPointHandling`
-  - `LearningData`、`WeakCategory`
-- 修改 `DimensionFeedback`：新增 `issues: Issue[]`、`tips?: string[]`
-- 修改 `AIFeedback`：新增 `translationStrategy`、`overallSuggestion: string[]`（替代 `summary`）
+**Step 6.1：统计概览卡片（StatsOverview）**
+- 新建 `src/features/review/components/StatsOverview.tsx`
+- 展示：总刷题数、平均分、最高分/最低分
+- 展示三维度平均分（grammar/vocabulary/sentenceStructure），从 `AnswerRecord[]` 计算
+- 数据来源：`computeStatistics(records)` + 直接遍历 `records`
 
-**Step 5.2：更新模拟反馈**
-- 修改 `mockFeedback.ts` 的 `generateMockFeedback` 函数
-- 为每个维度生成 1-3 个模拟 issues（含 category、severity）
-- 生成模拟 translationStrategy
-- 生成 overallSuggestion 数组（替代 summary 字符串）
+**Step 6.2：改进点列表（ImprovementList）**
+- 新建 `src/features/review/components/ImprovementList.tsx`
+- 数据来源：`useReviewStore` 的 `improvementPoints`
+- 展示：按 frequency 降序排列
+- 每项显示：`categoryDescription`（中文名）、dimension 标签、frequency 次数、mastery 进度条（0-100）
+- mastery 颜色：≥80 success、≥50 warning、<50 error
+- 可展开查看：关联的 recentIssueIds（暂时只显示记录 id，Phase 9 再深化）
 
-**Step 5.3：更新反馈面板**
-- 修改 `FeedbackPanel.tsx` 展示新结构
-- 每个维度下新增 issues 列表（按 severity 颜色标记）
-- 新增 TranslationStrategy 展示区域
-- overallSuggestion 替代原 summary
+**Step 6.3：分数趋势图（ScoreTrendChart）**
+- 新建 `src/features/review/components/ScoreTrendChart.tsx`
+- 安装 recharts：`pnpm add recharts`
+- 使用 Recharts 面积图（AreaChart）展示历史分数变化
+- X 轴：answeredAt 时间戳（格式化为 MM/DD）
+- Y 轴：score（0-100）
+- 取最近 20 条记录展示
 
-**Step 5.4：更新回顾 Store**
-- 修改 `reviewStore.ts` 的 `extractFromRecords` 函数
-- 基于 `Issue.category` 聚合（而非字符串匹配）
-- 新增 `mastery` 计算逻辑
-- 导出 `updateMastery` 函数
+**Step 6.4：组装回顾页**
+- 修改 `src/app/review/page.tsx`
+- 从 `practiceStore` 读取 `answerRecords`
+- 从 `reviewStore` 读取 `improvementPoints`，调用 `extractImprovements`
+- 布局（从上到下）：
+  1. 页面标题
+  2. StatsOverview
+  3. ScoreTrendChart（有足够数据时显示，<3 条时隐藏）
+  4. ImprovementList
 
 ### 验收标准
 
-1. `npm run build` 无类型错误
-2. 练习页反馈面展示 issues 列表 + 翻译策略
-3. 回顾页改进点按 category 聚合，显示 mastery
+1. `pnpm run build` 无类型错误
+2. 有作答记录时，回顾页展示统计卡片 + 改进点列表
+3. 无作答记录时，展示空状态提示（"去练习后再查看"）
+4. 改进点按 frequency 降序排列，mastery 显示颜色正确
 
 ---
 
-*Phase 5 完成后更新此文件。*
+*Phase 5 已完成（2026-06-06）。Phase 6 完成后更新此文件。*
