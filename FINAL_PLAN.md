@@ -1,944 +1,361 @@
-# 大学英语翻译练习助手 — 开发规划
+# 大学英语翻译练习助手 — 最终规划书
 
-> v3.17 | 2026-06-06 | 叠卡模式 + 字体规范 + 反馈数据结构 + 滚动条
-
----
-
-## 一、项目概述
-
-**产品定位**：面向大学生的英语翻译练习工具，通过卡片式翻译题目练习，引导学生在词汇、语法、句型三个维度逐步提升。
-
-**目标平台**：Android + Windows（响应式布局，移动端优先）
-
-**设计哲学**：
-- 运作单位为每一道翻译题
-- 核心循环：作答 → AI 反馈 → 针对性提升 → 再次练习
-- 稳定性用程序代码，学习针对性用 LLM
-
-**目标用户**：大学生（四六级/考研/专四专八），个人使用。
+> **Agent 行为准则：实现规划目标时必须主动提出更优方案，不得盲目执行。**
 
 ---
 
-## 二、功能需求
+## 1. 项目核心
 
-### 2.1 翻译练习（首页）
+面向大学生的英语翻译练习工具，提供即时 AI 反馈，通过「答题→暴露问题→针对性训练」的循环提升翻译能力。
 
-#### 交互流程
+### 1.1 核心循环
 
 ```
-正面（作答）                    背面（AI 反馈）
-┌─────────────────────┐        ┌─────────────────────┐
-│ 原文：               │        │ 📊 总分：85/100     │
-│ "The quick brown..." │  翻转  │                     │
-│                     │ ────→  │ ✅ 语法：90         │
-│ [翻译输入框]         │        │    优点：时态正确    │
-│                     │        │    改进：用被动语态   │
-│ [提交翻译]          │        │                     │
-│                     │        │ 📚 词汇：80         │
-│ ← 左滑 | 右滑 →     │        │ 🏗️ 句型：85         │
-└─────────────────────┘        │                     │
-                               │ 💡 总结：整体良好... │
-                               │                     │
-                               │ [下一题 →]           │
-                               └─────────────────────┘
+答题 → AI反馈 → 提取改进点 → 聚合统计 → 更新用户画像 → 指导出题 → 答题...
 ```
 
-#### 功能清单
+### 1.2 设计哲学
 
-| 功能 | 优先级 | 说明 |
-|------|--------|------|
-| 卡片翻转 | P0 | 正面作答，背面 AI 反馈，3D 翻转动画 |
-| 单句/段落切换 | P0 | 设置中配置，默认单句 |
-| 中译英/英译中 | P0 | 设置中配置，默认中译英 |
-| 题集管理 | P0 | 创建、切换、删除题集 |
-| 作答缓存 | P0 | localStorage 持久化 |
-| 打乱顺序 | P1 | 随机打乱当前题集 |
-| 滑动手势 | P1 | 移动端左右滑动切换 |
-| 快捷键 | P2 | Enter 提交，← → 切换 |
-
-#### 作答流程详解
-
-1. **题目展示**：显示原文、翻译方向标识、题集信息
-2. **用户输入**：textarea 多行输入，支持段落翻译，自动高度
-3. **提交**：调用 LLM 评估，显示 loading 状态
-4. **翻转展示**：卡片 3D 翻转，展示三维反馈 + 总分 + 总结
-5. **下一题**：点击按钮或滑动进入下一题，记录作答历史
-
-#### LLM 提示词（占位）
-
-> 交给另一 Agent 编写。指引：角色为专业英语翻译教师，输入原文+学生翻译+翻译方向+学生信息，输出 JSON 格式三维评估（语法/词汇/句型），每维度含分数、优点、改进，总分百分制 + 总结。
+- 翻译练习是核心，提供详细反馈作为提升手段
+- 卡片式单题展示，避免信息过载
+- 个性化学习，根据用户薄弱点针对性出题
 
 ---
 
-### 2.2 回顾与统计
+## 2. 技术栈
 
-#### 页面结构
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  回顾与统计                                               │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  [刷题总数] [平均分] [最高分]                              │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  分数分布图表（Recharts 柱状图）                   │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  改进点收录                                       │   │
-│  │  [语法] [词汇] [句型]                             │   │
-│  │                                                  │   │
-│  │  • 被动语态使用不熟练（12 次）                    │   │
-│  │  • 虚拟语气混淆（8 次）                          │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  弱势题目（< 50 分）                              │   │
-│  │  [题目1] [题目2] ...                              │   │
-│  │  [重新练习弱势题目]                               │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 功能清单
-
-| 功能 | 优先级 | 说明 |
-|------|--------|------|
-| 基础统计 | P0 | 刷题数量、平均分、最高分 |
-| 分数分布图 | P0 | 柱状图展示各分段题目数量 |
-| 三维改进点 | P0 | 语法/词汇/句型分类，含频率统计 |
-| 弱势题目 | P0 | < 50 分题目可推入首页重练 |
-| 时间趋势 | P1 | 折线图展示分数变化 |
-| 导出报告 | P2 | PDF/JSON 格式 |
-
-#### 改进点提取逻辑
-
-从 AI 反馈的 `improvements` 字段提取，按维度分类，统计出现频率：
-- 同一改进点出现多次时 frequency +1
-- 关联 `relatedQuestionIds` 追溯来源
-- 按频率降序排列展示
+| 层面 | 技术选择 |
+|------|---------|
+| 框架 | Next.js 16 (App Router) |
+| UI 组件 | Radix Primitives |
+| 样式 | Tailwind CSS 4 |
+| 状态管理 | Zustand |
+| LLM 调用 | Vercel AI SDK (ai@6) |
+| 图表 | 面积图 (Recharts) |
+| 持久化 | localStorage → IndexedDB |
 
 ---
 
-### 2.3 个人设置
+## 3. LLM 使用边界
 
-#### 页面结构
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  个人设置                                                │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  用户信息                                                │
-│  昵称：[________]  学年段：[大一 ▼]  词汇量：[4000 ▼]   │
-│                                                         │
-│  翻译偏好                                                │
-│  模式：(● 单句) (○ 段落)    方向：(● 中译英) (○ 英译中) │
-│                                                         │
-│  LLM 配置                                               │
-│  API 地址：[https://api.openai.com/v1]                  │
-│  API Key：  [sk-••••••••]                               │
-│  模型：    [gpt-4o ▼]    [测试连接]                      │
-│                                                         │
-│  主题风格：[🤎 Claude] [🪟 微软] [🔵 谷歌] [🍎 iOS]      │
-│  外观：[☀️ 浅色] [🌙 深色] [🎨 跟随系统]                  │
-│                                                         │
-│  水平测试：通过简短测试评估英语水平  [开始测试]            │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### 功能清单
-
-| 功能 | 优先级 | 说明 |
-|------|--------|------|
-| 用户信息 | P0 | 昵称、学年段（大一~研三）、词汇量 |
-| 翻译偏好 | P0 | 单句/段落、中译英/英译中 |
-| LLM 配置 | P0 | API 地址、Key、模型选择、连接测试 |
-| 题目偏好 | P1 | 预设类型（红色主题/政治/励志/科技/文化/日常/商务/学术）+ 自定义偏好文本 |
-| 主题风格 | P1 | Claude（默认）/ 微软 / 谷歌 / iOS，四套 UI 风格切换 |
-| 外观模式 | P1 | 浅色/深色/跟随系统，与主题风格独立叠加 |
-| 水平测试 | P2 | 评估英语水平的简短测试 |
-| 数据导入导出 | P2 | 备份和恢复 |
-
-#### LLM 连接测试
-
-调用 `{apiUrl}/models` 接口，验证 API Key 有效性。成功显示可用模型列表，失败显示错误信息。
-
----
-
-## 三、技术架构
-
-### 3.1 技术选型
-
-| 层级 | 技术 | 说明 |
+| 任务 | 方式 | 原因 |
 |------|------|------|
-| 前端框架 | Next.js 16 + React 19 + TypeScript | App Router, 静态导出 |
-| UI 框架 | Tailwind CSS 4 | 原子化 CSS |
-| 状态管理 | Zustand | 轻量级，支持持久化 |
-| 动画 | Framer Motion | 翻转、滑动 |
-| 图表 | Recharts | 统计图表 |
-| 打包 | Tauri v2 | Android + Windows |
-| 存储 | localStorage | 浏览器内置 |
-| LLM | OpenAI 兼容 API | 支持多种服务 |
-| 包管理 | pnpm | corepack 管理 |
-
-### 3.2 环境依赖
-
-| 依赖 | 状态 | 版本 | 安装方式 |
-|------|------|------|----------|
-| Node.js | ✅ 已安装 | 24.15.0 | fnm |
-| pnpm | ✅ 已安装 | 10.33.2 | corepack |
-| Rust / Cargo | ✅ 已安装 | 1.96.0 | rustup |
-| Visual Studio | ✅ 已安装 | Community 2026 | 官方安装器 |
-| Android Studio | ✅ 已安装 | — | JetBrains Toolbox |
-| Tauri CLI | ✅ 已安装 | 2.11.2 | pnpm (devDependency) |
-
-### 3.3 字体系统
-
-| 用途 | 字体 | 文件 |
-|------|------|------|
-| 英文衬线 | EB Garamond | `public/fonts/EBGaramond-*.ttf` (10 文件) |
-| 英文无衬线 | Sarasa Gothic | `public/fonts/SarasaUiSC-*.ttf` (10 文件) |
-| 中文衬线 | Source Han Serif | `public/fonts/SourceHanSerif.ttc` |
-| 中文无衬线 | Sarasa Gothic | 同英文无衬线 |
-
-> 字体文件在 `.gitignore` 中忽略，首次开发需从本地复制。
-
-### 3.4 项目结构
-
-```
-src/
-├── app/                    # Next.js 页面
-│   ├── layout.tsx          # 根布局（字体、主题）
-│   ├── page.tsx            # 首页（翻译练习）
-│   ├── review/page.tsx     # 回顾页面
-│   └── settings/page.tsx   # 设置页面
-├── components/
-│   ├── ui/                 # 基础组件（Button, Card, Input, Badge, Tabs）
-│   ├── layout/             # 布局（TopNav, AppLayout）
-│   └── shared/             # 业务共享（FlashCard, ScoreDisplay, FeedbackPanel）
-├── features/
-│   ├── practice/           # 练习模块（components, hooks, store, services）
-│   ├── review/             # 回顾模块（components, hooks, store）
-│   └── settings/           # 设置模块（components, hooks, store）
-├── hooks/                  # 全局 Hooks（useLocalStorage, useTheme, useLLM）
-├── services/               # 全局服务（storage, prompts）
-├── types/                  # TypeScript 类型
-├── utils/                  # 工具函数（score, stats, format）
-└── styles/                 # 样式（fonts.ts, theme.css）
-src-tauri/                  # Tauri 后端
-public/fonts/               # 字体文件
-```
+| 格式化解析、评分计算 | 程序 | 稳定可靠 |
+| 分数数字校验 | 程序 | 避免 LLM 幻觉 |
+| 翻译质量评估 | LLM | 需要语义理解 |
+| 优点/改进点生成 | LLM | 需要教学知识 |
+| 问题分类标签 | LLM + 固定枚举 | 稳定且灵活 |
 
 ---
 
-## 四、设计规范
+## 4. 页面架构
 
-基于 `awesome-design-md/design-md/claude/DESIGN.md` 实现 Claude 风格。
+### 4.1 练习页（首页）
 
-### 4.1 色彩系统
+- **正面**：题目 + 翻译输入框 + 提交按钮
+- **反面**：三维评分 + 问题列表 + 翻译策略分析
+- 滑动卡片切换题目，支持上一张/下一张
 
-```css
-:root {
-  --color-primary: #cc785c;           /* 珊瑚色主色调 */
-  --color-primary-active: #a9583e;
-  --color-primary-disabled: #e6dfd8;
-  --color-canvas: #faf9f5;            /* 奶油色画布 */
-  --color-surface-card: #efe9de;      /* 卡片背景 */
-  --color-surface-dark: #181715;      /* 深色表面 */
-  --color-ink: #141413;               /* 主文字 */
-  --color-body: #3d3d3a;              /* 正文 */
-  --color-muted: #6c6a64;             /* 次要文字 */
-  --color-hairline: #e6dfd8;          /* 边框 */
-  --color-success: #5db872;
-  --color-warning: #d4a017;
-  --color-error: #c64545;
-}
+### 4.2 回顾页
 
-.dark {
-  --color-canvas: #181715;
-  --color-surface-card: #252320;
-  --color-ink: #faf9f5;
-  --color-body: #a09d96;
-  --color-hairline: #3d3d3a;
-}
-```
+- 统计概览：刷题数、平均分、各维度分数、分段统计
+- 改进点列表：按 frequency/mastery 排序，可展开查看详情
+- 分数趋势图：展示历史分数变化
 
-### 4.2 字体配置
+### 4.3 个人/设置页
 
-**字体分工**：
-- **中文**：默认无衬线体（Sarasa Gothic / system-ui）
-- **英文及数字**：默认衬线体（EB Garamond）
-- 标题 `--font-display`：EB Garamond（衬线，英文/数字标题）
-- 正文 `--font-body`：Sarasa Gothic（无衬线，中文正文）
-- 实现：`body` 设 `font-family: var(--font-body)`，数字/英文用 `font-display` class
+- 用户信息：昵称、学年段、词汇量、翻译模式
+- LLM 配置：API 地址、密钥、模型选择
+- 数据管理：清除数据、导出/导入
+
+---
+
+## 5. 数据结构
+
+### 5.1 核心类型定义
 
 ```typescript
-// styles/fonts.ts
-import localFont from 'next/font/local';
+// ====== 题目 ======
+type TranslationDirection = 'zh-en' | 'en-zh';
+type Difficulty = 'easy' | 'medium' | 'hard';
 
-export const ebGaramond = localFont({
-  src: [
-    { path: '../../public/fonts/EBGaramond-Regular.ttf', weight: '400' },
-    { path: '../../public/fonts/EBGaramond-Medium.ttf', weight: '500' },
-    { path: '../../public/fonts/EBGaramond-SemiBold.ttf', weight: '600' },
-    { path: '../../public/fonts/EBGaramond-Bold.ttf', weight: '700' },
-    { path: '../../public/fonts/EBGaramond-ExtraBold.ttf', weight: '800' },
-    { path: '../../public/fonts/EBGaramond-Italic.ttf', weight: '400', style: 'italic' },
-    { path: '../../public/fonts/EBGaramond-MediumItalic.ttf', weight: '500', style: 'italic' },
-    { path: '../../public/fonts/EBGaramond-SemiBoldItalic.ttf', weight: '600', style: 'italic' },
-    { path: '../../public/fonts/EBGaramond-BoldItalic.ttf', weight: '700', style: 'italic' },
-    { path: '../../public/fonts/EBGaramond-ExtraBoldItalic.ttf', weight: '800', style: 'italic' },
-  ],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-export const sarasaGothic = localFont({
-  src: [
-    { path: '../../public/fonts/SarasaUiSC-ExtraLight.ttf', weight: '200' },
-    { path: '../../public/fonts/SarasaUiSC-Light.ttf', weight: '300' },
-    { path: '../../public/fonts/SarasaUiSC-Regular.ttf', weight: '400' },
-    { path: '../../public/fonts/SarasaUiSC-SemiBold.ttf', weight: '600' },
-    { path: '../../public/fonts/SarasaUiSC-Bold.ttf', weight: '700' },
-    { path: '../../public/fonts/SarasaUiSC-ExtraLightItalic.ttf', weight: '200', style: 'italic' },
-    { path: '../../public/fonts/SarasaUiSC-LightItalic.ttf', weight: '300', style: 'italic' },
-    { path: '../../public/fonts/SarasaUiSC-Italic.ttf', weight: '400', style: 'italic' },
-    { path: '../../public/fonts/SarasaUiSC-SemiBoldItalic.ttf', weight: '600', style: 'italic' },
-    { path: '../../public/fonts/SarasaUiSC-BoldItalic.ttf', weight: '700', style: 'italic' },
-  ],
-  variable: '--font-body',
-  display: 'swap',
-});
-
-export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable}`;
-```
-
-```css
-/* globals.css */
-@font-face {
-  font-family: 'Source Han Serif SC';
-  src: url('/fonts/SourceHanSerif.ttc') format('truetype-collection');
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@theme {
-  --font-display: var(--font-display), 'Georgia', serif;
-  --font-body: var(--font-body), 'Inter', sans-serif;
-  --font-serif-cjk: 'Source Han Serif SC', serif;
-  --font-code: 'JetBrains Mono', monospace;
-}
-```
-
-### 4.3 排版层级
-
-| Token | 字体 | 大小 | 字重 | 用途 |
-|-------|------|------|------|------|
-| `display-xl` | EB Garamond | 64px | 400 | 首页大标题 |
-| `display-lg` | EB Garamond | 48px | 400 | 章节标题 |
-| `display-md` | EB Garamond | 36px | 400 | 子章节标题 |
-| `display-sm` | EB Garamond | 28px | 400 | 卡片标题 |
-| `title-lg` | Sarasa Gothic | 22px | 500 | 重要标签 |
-| `title-md` | Sarasa Gothic | 18px | 500 | 卡片标题 |
-| `title-sm` | Sarasa Gothic | 16px | 500 | 列表标签 |
-| `body-md` | Sarasa Gothic | 16px | 400 | 正文 |
-| `body-sm` | Sarasa Gothic | 14px | 400 | 辅助文字 |
-| `caption` | Sarasa Gothic | 13px | 500 | 标签 |
-| `code` | JetBrains Mono | 14px | 400 | 代码块 |
-
-### 4.4 间距与圆角
-
-```css
-:root {
-  --space-xxs: 4px;   --space-xs: 8px;
-  --space-sm: 12px;    --space-md: 16px;
-  --space-lg: 24px;    --space-xl: 32px;
-  --space-xxl: 48px;   --space-section: 96px;
-
-  --rounded-xs: 4px;     --rounded-sm: 6px;
-  --rounded-md: 8px;     --rounded-lg: 12px;
-  --rounded-xl: 16px;    --rounded-pill: 9999px;
-}
-```
-
-### 4.5 响应式设计
-
-#### 断点
-
-| 断点 | 宽度 | 设备 |
-|------|------|------|
-| `xs` | < 640px | 手机竖屏 |
-| `sm` | 640-767px | 手机横屏 |
-| `md` | 768-1023px | 平板 |
-| `lg` | 1024-1279px | 小笔记本 |
-| `xl` | 1280-1535px | 桌面 |
-| `2xl` | ≥ 1536px | 大屏 |
-
-#### 组件适配策略
-
-| 组件 | 移动端 (< 768px) | 平板 (768-1023px) | 桌面 (≥ 1024px) |
-|------|------------------|-------------------|-----------------|
-| BottomNav | 底部水平 pill（全宽） | 左/右侧垂直 pill（居中） | 左/右侧垂直 pill（居中） |
-| 练习卡片 | 全宽堆叠 | 居中留白 | 最大 640px |
-| 统计卡片 | 单列 | 2 列 | 3 列 |
-| 改进点 | 可折叠列表 | 可折叠列表 | 3 列 Tab |
-| 设置表单 | 单列全宽 | 单列 480px | 双列 640px |
-| 题集管理 | 底部抽屉 | 可收起侧边栏 | 固定侧边栏 |
-
-#### 布局原则
-
-1. **移动优先**：默认移动端，`md:`、`lg:` 扩展
-2. **触控友好**：按钮最小 44px，间距 ≥ 8px
-3. **弹性布局**：Flexbox + Grid，避免固定宽度
-4. **字体缩放**：移动端 display 系列减少 20-30%
-5. **安全区域**：`env(safe-area-inset-*)` 适配刘海屏
-
-#### 移动端特殊处理
-
-- **滑动手势**：`react-swipeable` 左右滑动切换题目
-- **虚拟键盘**：输入框聚焦自动滚动到可视区域
-- **触摸反馈**：`active:scale-95` 缩放效果
-- **底部安全区**：`pb-safe` 适配 iPhone 底部横条
-
----
-
-## 五、数据模型
-
-### 5.1 核心类型
-
-```typescript
-// 题目
 interface Question {
   id: string;
   sourceText: string;
-  translationDirection: 'zh-en' | 'en-zh';
+  translationDirection: TranslationDirection;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: Difficulty;
   createdAt: number;
 }
 
-// 作答记录
-interface AnswerRecord {
-  id: string;
-  questionId: string;
-  userTranslation: string;
-  score: number;                // 0-100
-  feedback: AIFeedback;
-  answeredAt: number;
+// ====== AI 反馈 ======
+type FeedbackDimension = 'grammar' | 'vocabulary' | 'sentenceStructure';
+
+type IssueSeverity = 'error' | 'warning' | 'suggestion';
+
+// 标准化问题分类（用于改进点聚合）
+type IssueCategory =
+  | 'grammar.tense' | 'grammar.voice' | 'grammar.agreement'
+  | 'grammar.article' | 'grammar.preposition' | 'grammar.clause'
+  | 'grammar.subjunctive' | 'grammar.word-order'
+  | 'vocab.accuracy' | 'vocab.collocation' | 'vocab.formality'
+  | 'vocab.diversity'
+  | 'structure.choppy' | 'structure.run-on'
+  | 'structure.parallelism' | 'structure.coherence';
+
+interface Issue {
+  userFragment: string;            // 问题片段
+  suggestedFix: string;            // 建议修改
+  reason: string;                  // 原因
+  severity: IssueSeverity;
+  category: IssueCategory;         // 标准化分类
 }
 
-// AI 反馈
+interface DimensionFeedback {
+  score: number;                   // 0-100
+  strengths: string[];             // 优点
+  improvements: string[];          // 改进点概述
+  issues: Issue[];                 // 具体问题
+  tips?: string[];                 // 学习技巧
+}
+
+interface TranslationStrategy {
+  approach: '直译为主' | '意译为主' | '直译意译结合';
+  strengths: string[];
+  suggestions: string[];
+  keyPoints: KeyPointHandling[];
+}
+
+interface KeyPointHandling {
+  originalFragment: string;
+  userTranslation: string;
+  evaluation: '优秀' | '合格' | '待改进';
+  alternativeSuggestion?: string;
+}
+
 interface AIFeedback {
   grammar: DimensionFeedback;
   vocabulary: DimensionFeedback;
   sentenceStructure: DimensionFeedback;
-  summary: string;
+  translationStrategy: TranslationStrategy;
+  overallSuggestion: string[];     // 整体学习建议
 }
 
-interface DimensionFeedback {
-  score: number;
-  strengths: string[];
-  improvements: string[];
-}
-
-// 题集
-interface Collection {
+// ====== 作答记录 ======
+interface AnswerRecord {
   id: string;
-  name: string;
-  description?: string;
-  questionIds: string[];
-  createdAt: number;
-  updatedAt: number;
+  questionId: string;
+  userTranslation: string;
+  score: number;
+  feedback: AIFeedback;
+  answeredAt: number;
 }
 
-// 用户信息
+// ====== 改进点聚合 ======
+interface ImprovementPoint {
+  id: string;
+  category: IssueCategory;
+  dimension: FeedbackDimension;
+  description: string;
+  frequency: number;
+  recentIssueIds: string[];
+  firstSeen: number;
+  lastSeen: number;
+  mastery: number;                 // 0-100
+}
+
+// ====== 用户学习数据 ======
+interface LearningData {
+  totalQuestions: number;
+  averageScore: number;
+  dimensionScores: {
+    grammar: number;
+    vocabulary: number;
+    sentenceStructure: number;
+  };
+  weakCategories: WeakCategory[];
+  strongCategories: IssueCategory[];
+  recentTrend: 'improving' | 'stable' | 'declining';
+}
+
+interface WeakCategory {
+  category: IssueCategory;
+  frequency: number;
+  mastery: number;
+  suggestedFocus: string;
+}
+
+// ====== 用户信息 ======
 interface UserProfile {
   nickname: string;
-  gradeLevel: '大一' | '大二' | '大三' | '大四' | '研一' | '研二' | '研三';
+  gradeLevel: GradeLevel;
   vocabularyLevel: number;
-  translationMode: 'single' | 'paragraph';
-  translationDirection: 'zh-en' | 'en-zh';
-  /** 主题风格：不同 UI 视觉风格 */
-  themeStyle: 'claude' | 'microsoft' | 'google' | 'ios';
-  /** 外观模式：浅色/深色/跟随系统，与主题风格独立叠加 */
-  colorScheme: 'light' | 'dark' | 'system';
-  /** 题目偏好 */
+  translationMode: TranslationMode;
+  translationDirection: TranslationDirection;
+  theme: ThemePreference;
   topicPreference: TopicPreference;
 }
 
-// 题目偏好
-type PresetTopic = 'red-theme' | 'political' | 'motivational' | 'technology' | 'culture' | 'daily-life' | 'business' | 'academic';
-interface TopicPreference {
-  presetTopics: PresetTopic[];    // 选中的预设类型
-  customTopics: string;           // 自定义偏好描述
-}
-
-// LLM 配置
+// ====== LLM 配置 ======
 interface LLMConfig {
   apiUrl: string;
   apiKey: string;
   model: string;
 }
-
-// 改进点
-interface ImprovementPoint {
-  id: string;
-  dimension: 'grammar' | 'vocabulary' | 'sentenceStructure';
-  content: string;
-  frequency: number;
-  relatedQuestionIds: string[];
-  firstSeen: number;
-  lastSeen: number;
-}
 ```
 
-### 5.2 localStorage 键名
+### 5.2 改进点聚类机制
+
+- LLM 输出 issues 时，从预定义 `IssueCategory` 中选择分类
+- 相同 `category` 的 issues 自动聚合到 `ImprovementPoint`
+- `mastery` 计算：每次出现下降，连续未出现上升
+
+### 5.3 掌握度更新规则
 
 ```typescript
-const STORAGE_KEYS = {
-  QUESTIONS: 'ueh_questions',
-  ANSWERS: 'ueh_answers',
-  COLLECTIONS: 'ueh_collections',
-  USER_PROFILE: 'ueh_user_profile',
-  LLM_CONFIG: 'ueh_llm_config',
-  IMPROVEMENTS: 'ueh_improvements',
-} as const;
-```
-
----
-
-## 六、LLM 集成
-
-### 6.1 服务封装
-
-```typescript
-class LLMService {
-  constructor(private config: LLMConfig) {}
-
-  async evaluateTranslation(params: {
-    sourceText: string;
-    userTranslation: string;
-    direction: 'zh-en' | 'en-zh';
-    userProfile: UserProfile;
-  }): Promise<AIFeedback> {
-    const prompt = buildEvaluationPrompt(params);
-
-    const response = await fetch(`${this.config.apiUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.config.model,
-        messages: [
-          { role: 'system', content: '...' }, // 占位，由另一 Agent 编写
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-      }),
-    });
-
-    const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
-  }
-
-  async testConnection(): Promise<boolean> {
-    try {
-      const res = await fetch(`${this.config.apiUrl}/models`, {
-        headers: { 'Authorization': `Bearer ${this.config.apiKey}` },
-      });
-      return res.ok;
-    } catch {
-      return false;
-    }
+// 伪代码
+function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
+  if (isOccurred) {
+    point.mastery = Math.max(0, point.mastery - 10);
+    point.frequency++;
+    point.lastSeen = Date.now();
+  } else {
+    // 连续 5 次未出现，每次 +5
+    point.mastery = Math.min(100, point.mastery + 5);
   }
 }
 ```
 
-### 6.2 提示词（占位）
-
-> 交给另一 Agent 编写。
-
-**翻译评分**：角色=英语翻译教师，输入=原文+翻译+方向+学生信息，输出=JSON 三维评估（语法/词汇/句型），每维度分数+优点+改进，总分百分制+总结。
-
-**水平测试**：角色=评估专家，输入=学生信息+测试作答，输出=评估结果+水平等级。
-
 ---
 
-## 七、开发计划（Agent 模式）
+## 6. UI 设计
 
-### 7.1 原则
+### 6.1 整体布局
 
-1. **逐步交付**：每步完成后应用可正常打开，关键功能可测试
-2. **To-Do 维护**：每步维护待办清单，验收后再推进
-3. **独立可测**：每步交付物独立可运行
-4. **仓库审查**：每步提交前必须审查仓库状态（`git status` + `git diff`），确认无遗漏、无误提交，再 commit
-5. **DEVLOG 同频更新**：每次有意义的提交，同步更新 `DEVLOG.md`，记录决策、踩坑与经验
-6. **Step 内细分**：每个 Step 内的工作应拆分为子任务，逐步完成并验收，而非一次性交付整个 Step
-7. **最小变更原则**：在做任何修改前，确保不要对任何与待修改特性无关的内容发生变化。修改应精准、最小化，避免意外覆盖或回退已有的正确调整
-
-### 7.2 步骤
-
-#### Step 1：项目初始化 ✅
-
-**目标**：Next.js + Tauri 项目骨架
-
-**交付物**：
-- Next.js 16 (App Router) + Tailwind CSS 4 + TypeScript
-- Tauri v2 基础配置
-- `pnpm dev` 和 `pnpm tauri dev` 可启动
-
-**To-Do**：
-- [x] 初始化 Next.js 项目
-- [x] 配置 Tailwind CSS 4
-- [x] 初始化 Tauri v2
-- [x] 验证开发服务器启动
-- [x] 配置 `output: 'export'`（Tauri 静态导出）
-- [x] 整理 `.gitignore`（.idea/、public/fonts/、src-tauri/target/）
-
-> **注意**：字体文件已下载到 `public/fonts/` 但未提交 Git（在 `.gitignore` 中忽略）。首次 clone 后需手动复制字体文件。
-
----
-
-#### Step 2：设计系统与字体
-
-**目标**：Claude 设计系统 + 字体 + 基础组件
-
-**交付物**：
-- 色彩/字体/间距 CSS 变量
-- EB Garamond + Sarasa Gothic + Source Han Serif 配置
-- Button、Card、Input、Badge、Tabs 组件
-- 浅色/深色主题切换
-- 响应式断点配置
-- 底部 Pill 导航栏组件（BottomNav，多端统一：移动端底部水平，平板+侧边垂直）
-- `--nav-pill-radius` CSS 变量（默认 `9999px`，pill 形态）
-- `useNavRadius` Hook（localStorage 持久化导航圆角）
-- `useNavPosition` Hook（localStorage 持久化导航位置：左/右）
-
-**To-Do**：
-- [x] 复制字体到 public/fonts/
-- [x] 配置 next/font/local + @font-face
-- [x] 实现 CSS 变量（色彩/间距/圆角）
-- [x] 实现 5 个基础组件
-- [x] 实现主题切换
-- [x] 创建设计预览页面
-- [x] 实现 `--nav-pill-radius` CSS 变量 + `useNavRadius` Hook
-- [x] 实现 `useNavPosition` Hook
-- [x] 实现 BottomNav 底部导航组件
-
----
-
-#### Step 3：布局与导航 ✅
-
-**目标**：主布局 + 路由 + 底部导航
-
-**交付物**：
-- AppLayout（响应式容器 + 底部 padding 预留导航空间）
-- 底部 Pill 导航栏（BottomNav，多端统一，覆盖式悬浮）
-- 三个页面路由（首页/回顾/设置）
-- 占位页面
-
-**To-Do**：
-- [x] 实现 AppLayout（内容区 + 底部 padding）
-- [x] 实现 BottomNav（底部 pill 导航，圆角可配置）
-- [x] 配置路由（/、/review、/settings）
-- [x] 创建占位页面（回顾/设置）
-- [x] 验证页面切换
-
----
-
-#### Step 4：状态管理与数据层 ✅
-
-**目标**：Zustand stores + localStorage
-
-**交付物**：
-- TypeScript 类型定义
-- localStorage 封装
-- practiceStore、reviewStore、settingsStore
-- 数据持久化
-
-**To-Do**：
-- [x] 定义类型
-- [x] 实现 localStorage 封装
-- [x] 实现 3 个 stores
-- [x] 验证持久化
-
----
-
-#### Step 5：翻译练习核心 ✅（v1）→ 🔄 迭代中（v2）
-
-**目标**：卡片式翻译练习交互
-
-**交付物**：
-- FlashCard（3D 翻转 + 滑动手势）
-- CardFront（题目展示 + Textarea 输入 + 提交）
-- CardBack（ScoreDisplay + FeedbackPanel + 下一题）
-- 作答流程（输入→提交→翻转→查看）
-- 模拟 AI 反馈（mockFeedback 占位数据）
-
-**To-Do**：
-- [x] 安装 framer-motion
-- [x] 实现 FlashCard + 3D 翻转
-- [x] 实现滑动手势
-- [x] 实现 CardFront + CardBack
-- [x] 实现模拟反馈
-- [x] 验证作答流程
-
-**Step 5 v2 迭代**：
-- [ ] **叠卡模式**：卡片堆叠展示，左滑划走当前卡片展示下一张，右滑找回上一张
-- [ ] **卡片尺寸**：宽度 = 内容宽度 90%，高度 = 窗口宽度，设最大尺寸限制
-- [ ] **卡片内滚动**：内容超出卡片高度时，卡片内部滚动（不撑大页面）
-- [ ] **分数字号**：得分数字显著大于 "/ 100" 后缀
-- [ ] **字体规范**：中文无衬线，英文/数字衬线（EB Garamond）
-- [ ] **滚动条样式**：Windows 下简化 webview 滚动条（不占宽，隐藏箭头，只留滑块）
-
-**AI 反馈数据结构重构**（设计中，待确认）：
-- 当前 `AIFeedback` 固定三维（语法/词汇/句型），后续需支持可变维度
-- 需要支持不同评估策略（如：仅语法检查、仅词汇建议）
-- 需要支持反馈来源标识（LLM / 规则引擎 / 用户自评）
-- 详见 types/index.ts 中的 `AIFeedback` 接口，Step 6 接入 LLM 前完成重构
-
----
-
-#### Step 6：LLM 集成
-
-**目标**：OpenAI 兼容 API 调用
-
-**交付物**：
-- LLM 服务层
-- API 配置界面
-- 提示词占位指引
-- 真实 AI 反馈
-- 连接测试
-
-**To-Do**：
-- [ ] 实现 LLM 服务层
-- [ ] 实现 API 配置界面
-- [ ] 编写提示词指引（占位）
-- [ ] 集成到练习流程
-- [ ] 实现连接测试
-- [ ] 验证 AI 反馈
-
----
-
-#### Step 7：题集管理
-
-**目标**：题集 CRUD + 打乱 + 缓存
-
-**交付物**：
-- CollectionManager 组件
-- 题集创建/切换/删除
-- 题目打乱
-- 作答历史缓存
-
-**To-Do**：
-- [ ] 实现 CollectionManager
-- [ ] 实现题集 CRUD
-- [ ] 实现打乱
-- [ ] 实现缓存
-- [ ] 验证功能
-
----
-
-#### Step 8：回顾与统计
-
-**目标**：统计图表 + 改进点展示
-
-**交付物**：
-- StatisticsCard（响应式网格）
-- ScoreChart（Recharts 自适应）
-- ImprovementPoints（移动端折叠）
-- WeakQuestionsList
-- 重新练习功能
-
-**To-Do**：
-- [ ] 实现 StatisticsCard
-- [ ] 实现 ScoreChart
-- [ ] 实现 ImprovementPoints
-- [ ] 实现 WeakQuestionsList
-- [ ] 实现改进点提取
-- [ ] 实现重新练习
-- [ ] 验证回顾页面
-
----
-
-#### Step 9：设置页面
-
-**目标**：用户信息 + 偏好 + LLM 配置
-
-**交付物**：
-- ProfileForm（响应式）
-- LLMSettings
-- ThemeStyleSwitcher（四套 UI 风格切换：Claude/微软/谷歌/iOS）
-- ColorSchemeSwitcher（浅色/深色/跟随系统）
-- NavRadiusSlider（底部导航圆角预览式调整，实时预览 pill → 直角变化）
-- NavPositionSwitch（大尺寸屏幕导航位置切换：左侧/右侧）
-- 设置持久化
-
-**To-Do**：
-- [ ] 实现 ProfileForm
-- [ ] 实现 LLMSettings
-- [ ] 实现 ThemeStyleSwitcher（四套 UI 风格：Claude/微软/谷歌/iOS）
-- [ ] 实现 ColorSchemeSwitcher（浅色/深色/跟随系统）
-- [ ] 实现 NavRadiusSlider（滑块 + 实时预览，范围 0px ~ 9999px）
-- [ ] 实现 NavPositionSwitch（左/右切换 + 实时预览）
-- [ ] 实现持久化
-- [ ] 验证设置
-
----
-
-#### Step 10：打包与优化
-
-**目标**：Tauri 打包（Android + Windows）+ 性能优化
-
-**交付物**：
-- Android APK / AAB 打包
-- Windows MSI / EXE 打包
-- 应用图标
-- 懒加载优化
-- 响应式测试
-- 可分发应用
-
-**Tauri 平台适配**：
-1. **Android 安全区**：配置 `tauri.conf.json` 的 `app.android.safeArea`，适配状态栏和导航栏区域，避免内容被系统栏遮挡。需在 `AppLayout` 中使用 `env(safe-area-inset-*)` CSS 变量配合。
-2. **桌面端最小窗口**：配置 `tauri.conf.json` 的 `app.windows[].minWidth/minHeight`（建议 360×640），防止用户将窗口调整过小导致布局混乱。
-
-**To-Do**：
-- [ ] 配置 Android 打包（SDK、NDK、签名）
-- [ ] 配置 Windows 打包
-- [ ] 设计应用图标
-- [ ] 实现懒加载
-- [ ] Android 端测试（竖屏 360-412px，横屏 640-926px）
-- [ ] Windows 端测试（1280px+）
-- [ ] 配置 Android 状态栏/导航栏安全区适配（`tauri.conf.json` → `app.android.safeArea`）
-- [ ] 配置桌面端最小窗口大小（`tauri.conf.json` → `app.windows[].minWidth/minHeight`，防止布局混乱）
-- [ ] 最终验收
-
----
-
-## 八、版本管理规范
-
-### 8.1 分支策略
-
-```
-main (保护分支)
-├── develop (开发主线)
-│   ├── feature/step-{n}-{description}
-│   └── ...
-├── hotfix/{description}
-└── release/v{version}
+```ascii
+┌─────────────────────────────────────────────────────────────┐
+│                      顶部标题栏                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                      主内容区                                │
+│                     (max-w-3xl)                             │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│  练习    │    回顾    │    我的                              │
+│                      底部导航                                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 8.2 提交规范 (Conventional Commits)
+### 6.2 主题设计
 
-```
-<type>(<scope>): <description>
-```
+- **Light**：白色底，暖灰色背景，暗色文字
+- **Dark**：深灰底，更深背景，浅色文字
 
-| Type | 说明 | 示例 |
-|------|------|------|
-| `feat` | 新功能 | `feat(practice): add flashcard` |
-| `fix` | Bug 修复 | `fix(llm): handle JSON error` |
-| `chore` | 构建/工具 | `chore: configure Tailwind` |
-| `docs` | 文档 | `docs: update plan` |
-| `refactor` | 重构 | `refactor(storage): extract utils` |
-| `perf` | 性能 | `perf: lazy load charts` |
-| `build` | 构建系统 | `build(tauri): configure icon` |
+### 6.3 字体规范
 
-### 8.3 版本号 (SemVer)
+- 标题：20px semibold
+- 正文：14-16px regular
+- 说明：12px
 
-```
-v{MAJOR}.{MINOR}.{PATCH}
-```
+### 6.4 颜色系统
 
-- MAJOR：不兼容变更
-- MINOR：新功能
-- PATCH：Bug 修复
-
-### 8.4 工作流
-
-```bash
-# 开始新步骤
-git checkout develop
-git checkout -b feature/step-1-project-init
-
-# 开发提交
-git commit -m "feat: initialize Next.js project"
-
-# 完成合并
-git checkout develop
-git merge --no-ff feature/step-1-project-init
-git tag -a milestone/step-1 -m "Step 1 complete"
-git push origin develop --tags
-```
-
-### 8.5 追踪命令
-
-| 目的 | 命令 |
-|------|------|
-| 按类型筛选 | `git log --oneline --grep="feat"` |
-| 查看里程碑 | `git tag -l "milestone/*"` |
-| 追踪文件 | `git log --follow -- <file>` |
-| 安全回滚 | `git revert <commit>` |
-
-### 8.6 远程仓库
-
-| 仓库 | 地址 |
-|------|------|
-| `origin` | `https://github.com/Cralmeon/collegeEnglishHelper.git` |
+| Token | 用途 |
+|-------|------|
+| --ink | 主文字 |
+| --muted | 次要文字 |
+| --surface | 卡片背景 |
+| --accent-primary | 主色调 |
+| --accent-success | 成功/正确 |
+| --accent-amber | 警告/中等 |
+| --accent-danger | 错误/严重 |
 
 ---
 
-## 九、附录
+## 7. 实施步骤
 
-### A. 项目文档
+### Phase 1：项目初始化 ✅
 
-| 文档 | 用途 |
-|------|------|
-| `FINAL_PLAN.md` | 开发规划（本文档） |
-| `AGENTS.md` | Agent 指令（Next.js 版本注意事项） |
-| `CLAUDE.md` | Claude Code 项目指令（指向 AGENTS.md） |
-| `DEVLOG.md` | 开发博客：Agent 开发思路与经验 |
-| `briefInstruction.md` | 原始需求简述 |
+- [x] Next.js 16 + Tailwind CSS 4 + Radix UI
+- [x] 项目结构、主题变量、基础组件库
 
-### B. 参考资源
+### Phase 2：数据层 + 状态管理 🔄
 
-- Claude 设计规范：`awesome-design-md/design-md/claude/DESIGN.md`
-- Next.js：https://nextjs.org
-- Tauri：https://tauri.app
-- Framer Motion：https://www.framer.com/motion
-- Recharts：https://recharts.org
+- [ ] 类型定义（types/index.ts）
+- [ ] Zustand Store 结构
+- [ ] localStorage 持久化
 
-### C. 版本历史
+### Phase 3：练习页核心 📋
 
-| 版本 | 日期 | 变更 |
-|------|------|------|
-| v1.0 | 2026-06-05 | 初始版本 |
-| v2.0 | 2026-06-05 | Next.js、字体、Agent 模式、提示词占位 |
-| v2.1 | 2026-06-05 | 响应式设计规范 |
-| v2.2 | 2026-06-05 | 字体配置完成（思源宋体） |
-| v2.3 | 2026-06-05 | 版本管理规范 |
-| v3.0 | 2026-06-05 | 全文重构：精简冗余，细化功能描述，重组章节顺序 |
-| v3.1 | 2026-06-05 | 更新环境状态：Rust、VS、Android Studio 已安装 |
-| v3.2 | 2026-06-05 | Step 1 标记完成；修正技术栈版本（Next.js 16）；补充项目文档索引；新增 DEVLOG.md；新增仓库审查原则 |
-| v3.3 | 2026-06-05 | 明确目标平台：Android + Windows |
-| v3.4 | 2026-06-05 | 新增 DEVLOG 同频更新原则；重写 DEVLOG.md 修正阶段描述 |
-| v3.5 | 2026-06-05 | 新增原则：Step 内细分，逐步完成 |
-| v3.6 | 2026-06-05 | Step 2 完成；新增原则：最小变更原则；更新 DEVLOG 迭代优化记录 |
-| v3.7 | 2026-06-05 | 重构导航方案：TopNav+汉堡菜单 → 底部 Pill 导航（多端统一）；Step 2 新增 BottomNav/`--nav-pill-radius`/`useNavRadius`；Step 3 更新交付物；Step 9 新增 NavRadiusSlider；更新组件适配策略 |
-| v3.8 | 2026-06-05 | BottomNav 响应式优化：移动端底部水平 → 平板+侧边垂直居中；新增 `useNavPosition` Hook（左/右位置持久化）；活跃标签 30% 主题色 pill 背景；导航标签字号缩小（11px） |
-| v3.9 | 2026-06-05 | BottomNav 四项修复：移动端间距统一（移除 mx-1.5，改用 gap）；字号进一步缩小（10px）；hover/active 圆角动态计算（radius - padding）；撤销滑动指示器，恢复直接背景实现 |
-| v3.10 | 2026-06-05 | BottomNav 字号调整为 12px（`text-xs`）；删除 `globals.css` 中未使用的 `.text-caption-small`；新增 `AGENTS.md` 行为规范 |
-| v3.11 | 2026-06-05 | Step 3 标记完成；修复 Android APK 构建（签名配置位置、CLI 入口路径、JDK 版本、keyAlias）；Cargo.toml 添加 release 优化（strip/lto） |
-| v3.12 | 2026-06-05 | 字体优化：SourceHanSerif.ttc（163MB）→ WOFF2 子集（5MB）；Sarasa UI SC（134MB）→ WOFF2 子集（3MB）；移除 EB Garamond（待 WOFF2 补充）；APK 体积从 767MB 预计降至 ~15MB |
-| v3.13 | 2026-06-06 | Step 4 标记完成（状态管理与数据层）；Step 10 新增：Android 安全区适配、桌面端最小窗口大小 |
-| v3.14 | 2026-06-06 | 主题切换重构为两层：主题风格（Claude/微软/谷歌/iOS 四套 UI 风格）+ 外观模式（浅色/深色/跟随系统）；数据模型 `UserProfile` 拆分为 `themeStyle` + `colorScheme`；Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher |
-| v3.15 | 2026-06-06 | Step 5 标记完成（翻译练习核心）：FlashCard 3D 翻转 + 滑动手势 + CardFront/CardBack + ScoreDisplay/FeedbackPanel + mockFeedback 模拟反馈 |
-| v3.16 | 2026-06-06 | 修复 `--spacing-sm` 与 Tailwind 内部 token 冲突（重命名为 `--space-*`）；新增题目偏好配置（PresetTopic 8 种预设 + 自定义文本）；空状态改为卡片式布局 + 双按钮（前往设置/生成题目）；新增 mockGenerateQuestions 模拟题目生成 |
-| v3.17 | 2026-06-06 | Step 5 v2 迭代规划：叠卡模式（左滑划走/右滑找回）、卡片尺寸约束（90% 宽 × 窗口宽高比）、卡片内滚动、分数字号、字体规范（中文无衬线/英文数字衬线）、滚动条简化、AI 反馈数据结构重构待设计 |
+- [ ] 正面：题目展示 + 翻译输入
+- [ ] 反面：三维评分卡片 + 问题列表
+- [ ] 滑动切换动画
+- [ ] 模拟反馈（mockFeedback.ts）
+
+### Phase 4：回顾页 + 统计 📋
+
+- [ ] 统计概览卡片
+- [ ] 改进点列表（按 category 聚合）
+- [ ] 分数趋势图
+
+### Phase 5：个人/设置页 📋
+
+- [ ] 用户信息表单
+- [ ] LLM 配置
+- [ ] 数据管理
+
+### Phase 6：LLM 集成 📋
+
+- [ ] Prompt 设计（输出 AIFeedback 结构）
+- [ ] Vercel AI SDK 集成
+- [ ] 输出校验与 fallback
+
+### Phase 7：高级功能 📋
+
+- [ ] 用户画像更新逻辑
+- [ ] 基于 weakCategories 的智能出题
+- [ ] 掌握度追踪
+
+### Phase 8：Polish + Tauri 📋
+
+- [ ] 响应式适配
+- [ ] Tauri 打包
+- [ ] 性能优化
+
+---
+
+## 8. Prompt 设计要点
+
+### 8.1 输出格式要求
+
+LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
+
+- `score`：0-100 整数
+- `issues`：每个 issue 必须包含 `category`（从预定义枚举选择）和 `severity`
+- `translationStrategy.approach`：三选一
+- `overallSuggestion`：字符串数组
+
+### 8.2 Prompt 示例框架
+
+```
+你是一位大学英语翻译教师。请评估以下翻译，输出 JSON 格式反馈。
+
+题目：{sourceText}
+用户翻译：{userTranslation}
+
+要求：
+1. 语法/词汇/句型三维评分（0-100）
+2. 每个维度列出具体问题，问题分类必须从以下枚举选择：
+   [IssueCategory 枚举列表]
+3. 分析翻译策略（直译/意译/结合）
+4. 给出整体学习建议
+```
+
+---
+
+## 9. 版本历史
+
+| 版本 | 日期 | 变更内容 |
+|------|------|---------|
+| v1.0 | 2026/06/05 | 初始版本 |
+| v2.0 | 2026/06/06 | 重新设计：精简架构、AI反馈三维评估、自适应布局、Radix UI、Tauri |
+| v2.1 | 2026/06/06 | AI反馈数据结构深化：新增 Issue 标准化分类、翻译策略维度、掌握度追踪、用户学习数据 |

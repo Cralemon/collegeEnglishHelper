@@ -554,6 +554,70 @@ Textarea 组件内有 `div.w-full` 包裹层，无高度属性，导致 `h-full`
 
 ---
 
+## AI 反馈数据结构设计
+
+**日期**：2026-06-06
+
+### 讨论目标
+
+设计 AI 反馈的维度、格式，以及与统计/回顾系统的协同机制。
+
+### 核心决策
+
+| 项目 | 决定 |
+|------|------|
+| 问题定位粒度 | 文本片段匹配（用户原文直接匹配） |
+| 问题与维度关系 | 问题挂在维度下（内聚结构） |
+| 严重程度分级 | 保留三级：error / warning / suggestion |
+| 翻译策略维度 | 新增，字段用数组，不限一句话点评 |
+| summary 字段 | 改为 overallSuggestion，聚焦学习建议 |
+| 改进点聚类 | 标准化分类标签（IssueCategory），16 个预定义类别 |
+| 掌握度追踪 | mastery 字段，出现下降、连续未出现上升 |
+| IssueCategory 兜底 | 不需要 other |
+
+### 数据结构核心变化
+
+| 原设计 | 新设计 |
+|--------|--------|
+| 无具体问题 | `Issue` 挂在维度下 |
+| 无分类标签 | `IssueCategory` 16 个标准分类 |
+| 无翻译策略 | `TranslationStrategy` 整体分析 |
+| summary 字符串 | `overallSuggestion` 数组 |
+| 无掌握度 | `mastery` 追踪 |
+| 无学习数据 | `LearningData` 用户画像 |
+
+### 学习闭环设计
+
+```
+答题 → AI反馈 → 提取改进点 → 聚合统计 → 更新用户画像 → 指导出题 → 答题...
+```
+
+对应用户感知：
+```
+答题 → 暴露问题 → 看到薄弱点 → 针对性训练 → 掌握提升
+```
+
+### 掌握度更新规则
+
+- 每次出现该类问题 → mastery 下降（-10）
+- 连续 5 次答题未出现该问题 → mastery 上升（+5）
+- mastery > 80 视为"已掌握"，不再优先推荐
+
+### IssueCategory 枚举
+
+```typescript
+type IssueCategory =
+  | 'grammar.tense' | 'grammar.voice' | 'grammar.agreement'
+  | 'grammar.article' | 'grammar.preposition' | 'grammar.clause'
+  | 'grammar.subjunctive' | 'grammar.word-order'
+  | 'vocab.accuracy' | 'vocab.collocation' | 'vocab.formality'
+  | 'vocab.diversity'
+  | 'structure.choppy' | 'structure.run-on'
+  | 'structure.parallelism' | 'structure.coherence';
+```
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
