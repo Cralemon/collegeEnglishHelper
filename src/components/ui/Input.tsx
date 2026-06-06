@@ -54,12 +54,14 @@ export interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement>,
     VariantProps<typeof inputVariants> {
   error?: string;
+  /** 外层包裹 div 的类名 */
+  wrapperClassName?: string;
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, variant, error, ...props }, ref) => {
+  ({ className, variant, error, wrapperClassName, ...props }, ref) => {
     return (
-      <div className="w-full">
+      <div className={cn('w-full', wrapperClassName)}>
         <textarea
           className={cn(
             inputVariants({ variant: error ? 'error' : variant }),

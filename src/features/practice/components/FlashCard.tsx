@@ -56,8 +56,8 @@ export function FlashCard({
     <div
       className={cn(
         'relative w-full max-w-[640px] mx-auto max-h-[700px]',
-        /* 高度 = 视口 - 顶部间距(1.5rem) - 标题+间距(~3.5rem) - 底部导航(3rem) */
-        'h-[calc(100dvh-8rem)]',
+        /* 100dvh - pt-6(1.5rem) - title+mb-6(3.6rem) - pb-20(5rem) - nav(5.25rem) */
+        'h-[calc(100dvh-15.5rem)]',
         '[perspective:1000px]',
         className,
       )}

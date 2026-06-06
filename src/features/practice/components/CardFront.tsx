@@ -80,6 +80,7 @@ export function CardFront() {
           onChange={(e) => setDraft(e.target.value)}
           placeholder="请输入你的翻译..."
           className="h-full resize-none"
+          wrapperClassName="h-full"
           disabled={isEvaluating}
         />
       </div>
