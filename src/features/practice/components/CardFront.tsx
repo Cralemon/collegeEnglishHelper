@@ -1,61 +1,33 @@
 'use client';
 
-import { useCallback } from 'react';
-import { usePracticeStore } from '@/features/practice/store';
-import { useSettingsStore } from '@/features/settings/store';
 import { Button, Textarea } from '@/components/ui';
-import { generateMockFeedback, computeTotalScore } from '@/features/practice/services/mockFeedback';
-import type { AnswerRecord, TranslationDirection } from '@/types';
+import type { Question, TranslationDirection } from '@/types';
+
+interface CardFrontProps {
+  question: Question;
+  questionIndex: number;
+  totalCount: number;
+  direction: TranslationDirection;
+  draft: string;
+  isEvaluating: boolean;
+  onDraftChange: (value: string) => void;
+  onSubmit: () => void;
+}
 
 function getDirectionLabel(direction: TranslationDirection): string {
   return direction === 'zh-en' ? '中 → 英' : '英 → 中';
 }
 
-/**
- * 卡片正面 — 题目 + 输入 + 提交
- *
- * 布局：固定头部 / textarea 满高 / 固定底部按钮
- */
-export function CardFront() {
-  const {
-    questions,
-    currentIndex,
-    draft,
-    isEvaluating,
-    setDraft,
-    submitAnswer,
-    setEvaluating,
-  } = usePracticeStore();
-
-  const { userProfile } = useSettingsStore();
-
-  const question = questions[currentIndex];
-  const direction = userProfile.translationDirection;
-
-  const handleSubmit = useCallback(async () => {
-    if (!draft.trim() || !question) return;
-
-    setEvaluating(true);
-    await new Promise((r) => setTimeout(r, 800 + Math.random() * 700));
-
-    const feedback = generateMockFeedback(question.sourceText, draft, direction);
-    const score = computeTotalScore(feedback);
-
-    const record: AnswerRecord = {
-      id: `ans_${Date.now()}`,
-      questionId: question.id,
-      userTranslation: draft,
-      score,
-      feedback,
-      answeredAt: Date.now(),
-    };
-
-    submitAnswer(record);
-    setEvaluating(false);
-  }, [draft, question, direction, submitAnswer, setEvaluating]);
-
-  if (!question) return null;
-
+export function CardFront({
+  question,
+  questionIndex,
+  totalCount,
+  direction,
+  draft,
+  isEvaluating,
+  onDraftChange,
+  onSubmit,
+}: CardFrontProps) {
   return (
     <div className="h-full flex flex-col p-6 gap-4">
       {/* 固定头部 */}
@@ -64,7 +36,7 @@ export function CardFront() {
           {getDirectionLabel(direction)}
         </span>
         <span className="text-caption text-muted">
-          {currentIndex + 1} / {questions.length}
+          {questionIndex + 1} / {totalCount}
         </span>
       </div>
 
@@ -77,7 +49,7 @@ export function CardFront() {
       <div className="flex-1 min-h-0">
         <Textarea
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => onDraftChange(e.target.value)}
           placeholder="请输入你的翻译..."
           className="h-full resize-none"
           wrapperClassName="h-full"
@@ -90,9 +62,9 @@ export function CardFront() {
         <Button
           variant="primary"
           className="w-full"
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || isEvaluating}
           loading={isEvaluating}
-          onClick={handleSubmit}
+          onClick={onSubmit}
         >
           {isEvaluating ? '评估中...' : '提交翻译'}
         </Button>

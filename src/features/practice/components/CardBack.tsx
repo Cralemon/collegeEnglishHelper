@@ -1,32 +1,19 @@
 'use client';
 
-import { useCallback } from 'react';
-import { usePracticeStore } from '@/features/practice/store';
 import { Button } from '@/components/ui';
 import { ScoreDisplay } from './ScoreDisplay';
 import { FeedbackPanel } from './FeedbackPanel';
 import { computeTotalScore } from '@/features/practice/services/mockFeedback';
+import type { AnswerRecord } from '@/types';
 
-/**
- * 卡片背面 — AI 反馈展示
- */
-export function CardBack() {
-  const { answerRecords, nextQuestion, questions, currentIndex } =
-    usePracticeStore();
+interface CardBackProps {
+  record: AnswerRecord;
+  isLastQuestion: boolean;
+  onNext: () => void;
+}
 
-  const currentQuestion = questions[currentIndex];
-  const currentRecord = currentQuestion
-    ? [...answerRecords].reverse().find((r) => r.questionId === currentQuestion.id)
-    : undefined;
-
-  const handleNext = useCallback(() => {
-    nextQuestion();
-  }, [nextQuestion]);
-
-  if (!currentRecord) return null;
-
-  const score = computeTotalScore(currentRecord.feedback);
-  const isLastQuestion = currentIndex >= questions.length - 1;
+export function CardBack({ record, isLastQuestion, onNext }: CardBackProps) {
+  const score = computeTotalScore(record.feedback);
 
   return (
     <div className="h-full flex flex-col p-6">
@@ -37,7 +24,7 @@ export function CardBack() {
 
       {/* 可滚动反馈 */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <FeedbackPanel feedback={currentRecord.feedback} />
+        <FeedbackPanel feedback={record.feedback} />
       </div>
 
       {/* 固定底部 */}
@@ -45,7 +32,7 @@ export function CardBack() {
         <Button
           variant="primary"
           className="w-full"
-          onClick={handleNext}
+          onClick={onNext}
           disabled={isLastQuestion}
         >
           {isLastQuestion ? '已是最后一题' : '下一题 →'}

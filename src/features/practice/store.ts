@@ -133,12 +133,45 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
     }),
     {
       name: STORAGE_KEYS.QUESTIONS,
+      version: 2,
       // 只持久化题目和作答记录，不持久化临时状态
       partialize: (state) => ({
         questions: state.questions,
         currentIndex: state.currentIndex,
         answerRecords: state.answerRecords,
       }),
+      // v1 → v2：answerRecords 补全 Phase 5 新增字段
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Partial<PracticeState>;
+        if (version < 2 && Array.isArray(state.answerRecords)) {
+          state.answerRecords = state.answerRecords.map((r) => ({
+            ...r,
+            feedback: {
+              ...r.feedback,
+              grammar: {
+                ...r.feedback?.grammar,
+                issues: r.feedback?.grammar?.issues ?? [],
+              },
+              vocabulary: {
+                ...r.feedback?.vocabulary,
+                issues: r.feedback?.vocabulary?.issues ?? [],
+              },
+              sentenceStructure: {
+                ...r.feedback?.sentenceStructure,
+                issues: r.feedback?.sentenceStructure?.issues ?? [],
+              },
+              translationStrategy: r.feedback?.translationStrategy ?? {
+                approach: '直译意译结合' as const,
+                strengths: [],
+                suggestions: [],
+                keyPoints: [],
+              },
+              overallSuggestion: r.feedback?.overallSuggestion ?? [],
+            },
+          }));
+        }
+        return state as PracticeState;
+      },
     },
   ),
 );
