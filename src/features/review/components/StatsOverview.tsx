@@ -19,8 +19,8 @@ function StatCard({ label, value, sub, valueColor }: StatCardProps) {
   return (
     <div className="bg-surface-card border border-hairline rounded-xl p-4 flex flex-col gap-1">
       <p className="text-caption-uppercase text-muted">{label}</p>
-      <p className={cn('text-display-sm leading-none', valueColor ?? 'text-ink')}>{value}</p>
-      {sub && <p className="text-caption text-muted">{sub}</p>}
+      <p className={cn('text-display-md leading-none', valueColor ?? 'text-ink')}>{value}</p>
+      {sub && <p className="text-body-sm text-muted">{sub}</p>}
     </div>
   );
 }

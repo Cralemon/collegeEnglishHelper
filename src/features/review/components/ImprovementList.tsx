@@ -41,57 +41,62 @@ function ImprovementItem({ point }: { point: ImprovementPoint }) {
     <div className="bg-surface-card border border-hairline rounded-xl overflow-hidden">
       <button
         type="button"
-        className="w-full p-4 flex items-start gap-3 text-left hover:bg-surface-soft transition-colors"
+        className="w-full px-4 pt-4 pb-3 flex flex-col gap-3 text-left hover:bg-surface-soft transition-colors"
         onClick={() => setExpanded((v) => !v)}
       >
-        {/* 左侧：分类名 + 维度标签 */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <p className="text-body-sm font-medium text-ink">{point.description}</p>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" size="sm">
-              {dimensionLabel[point.dimension]}
+        {/* 上排：分类名 + 掌握度 */}
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0 space-y-1">
+            <p className="text-body-sm font-medium text-ink">{point.description}</p>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" size="sm">
+                {dimensionLabel[point.dimension]}
+              </Badge>
+              <span className="text-caption text-muted">出现 {point.frequency} 次</span>
+            </div>
+          </div>
+          <div className="shrink-0 flex flex-col items-end gap-1 min-w-[72px]">
+            <Badge variant={getMasteryVariant(point.mastery)} size="sm">
+              {getMasteryLabel(point.mastery)}
             </Badge>
-            <span className="text-caption text-muted">出现 {point.frequency} 次</span>
+            <span className="text-caption text-muted">{point.mastery} / 100</span>
           </div>
         </div>
 
-        {/* 右侧：掌握度 */}
-        <div className="shrink-0 flex flex-col items-end gap-1 min-w-[72px]">
-          <Badge variant={getMasteryVariant(point.mastery)} size="sm">
-            {getMasteryLabel(point.mastery)}
-          </Badge>
-          <span className="text-caption text-muted">{point.mastery} / 100</span>
-        </div>
-      </button>
-
-      {/* 掌握度进度条 */}
-      <div className="px-4 pb-1">
+        {/* 进度条紧贴内容底部 */}
         <div className="h-1 bg-surface-soft rounded-full overflow-hidden">
           <div
             className={cn('h-full rounded-full transition-all', getMasteryBarColor(point.mastery))}
             style={{ width: `${point.mastery}%` }}
           />
         </div>
-      </div>
+      </button>
 
-      {/* 展开详情：关联记录 IDs */}
-      {expanded && point.recentIssueIds.length > 0 && (
-        <div className="px-4 pb-4 pt-2 border-t border-hairline mt-2">
-          <p className="text-caption-uppercase text-muted mb-2">关联记录</p>
-          <div className="flex flex-wrap gap-1.5">
-            {point.recentIssueIds.slice(0, 8).map((id) => (
-              <span
-                key={id}
-                className="text-caption text-muted bg-surface-soft px-2 py-0.5 rounded font-mono"
-              >
-                {id.slice(-8)}
-              </span>
-            ))}
-            {point.recentIssueIds.length > 8 && (
-              <span className="text-caption text-muted">
-                +{point.recentIssueIds.length - 8} 条
-              </span>
-            )}
+      {/* 展开详情：关联记录 IDs（grid 高度动画） */}
+      {point.recentIssueIds.length > 0 && (
+        <div
+          className="grid transition-[grid-template-rows] duration-200 ease-out"
+          style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden">
+            <div className="px-4 pb-4 pt-2 border-t border-hairline">
+              <p className="text-caption-uppercase text-muted mb-2">关联记录</p>
+              <div className="flex flex-wrap gap-1.5">
+                {point.recentIssueIds.slice(0, 8).map((id) => (
+                  <span
+                    key={id}
+                    className="text-caption text-muted bg-surface-soft px-2 py-0.5 rounded font-mono"
+                  >
+                    {id.slice(-8)}
+                  </span>
+                ))}
+                {point.recentIssueIds.length > 8 && (
+                  <span className="text-caption text-muted">
+                    +{point.recentIssueIds.length - 8} 条
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

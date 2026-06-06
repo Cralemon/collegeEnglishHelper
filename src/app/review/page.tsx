@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePracticeStore } from '@/features/practice';
 import { useReviewStore, computeStatistics } from '@/features/review';
 import { StatsOverview, ImprovementList, ScoreTrendChart } from '@/features/review/components';
+import { ScrollFade } from '@/components/layout/ScrollFade';
 
 export default function ReviewPage() {
   const { answerRecords } = usePracticeStore();
@@ -34,21 +35,23 @@ export default function ReviewPage() {
     <div className="flex flex-col flex-1 min-h-0">
       <h1 className="text-display-sm text-ink mb-6 shrink-0">回顾与统计</h1>
 
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pb-4">
-        {/* 统计概览 */}
-        <StatsOverview records={answerRecords} stats={stats} />
+      <ScrollFade>
+        <div className="space-y-4 pb-4">
+          {/* 统计概览 */}
+          <StatsOverview records={answerRecords} stats={stats} />
 
-        {/* 分数趋势图（至少 3 条记录才显示） */}
-        {answerRecords.length >= 3 && (
-          <ScoreTrendChart records={answerRecords} />
-        )}
+          {/* 分数趋势图（至少 3 条记录才显示） */}
+          {answerRecords.length >= 3 && (
+            <ScoreTrendChart records={answerRecords} />
+          )}
 
-        {/* 改进点列表 */}
-        <section>
-          <h2 className="text-title-md text-ink mb-3">改进点追踪</h2>
-          <ImprovementList points={improvementPoints} />
-        </section>
-      </div>
+          {/* 改进点列表 */}
+          <section>
+            <h2 className="text-title-md text-ink mb-3">改进点追踪</h2>
+            <ImprovementList points={improvementPoints} />
+          </section>
+        </div>
+      </ScrollFade>
     </div>
   );
 }
