@@ -284,15 +284,15 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [ ] 分数趋势图（Recharts 面积图）
 - [ ] 薄弱点筛选：点击改进点可筛选相关题目
 
-### Phase 7：设置页 ⬜
+### Phase 7：设置页 ✅
 
 **目标**：用户信息管理 + 应用配置
 
-- [ ] 用户信息表单：昵称、学年段、词汇量
-- [ ] 应用设置：主题风格、深浅色、翻译方向、题目偏好
-- [ ] LLM 配置：API 地址、密钥、模型选择
-- [ ] 数据管理：清除数据、导出/导入
-- [ ] 用户画像展示：weakCategories、recentTrend
+- [x] 用户信息表单：昵称、学年段、词汇量
+- [x] 应用设置：翻译方向、翻译模式、深浅色、题目偏好
+- [x] LLM 配置：API 地址、密钥、模型选择
+- [x] 数据管理：清除练习数据
+- [ ] 用户画像展示：weakCategories、recentTrend（Phase 9）
 
 ### Phase 8：LLM 集成 ⬜
 
@@ -365,3 +365,4 @@ LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
 | v2.1 | 2026/06/06 | AI反馈数据结构深化：新增 Issue 标准化分类、翻译策略维度、掌握度追踪、用户学习数据 |
 | v2.2 | 2026/06/06 | Phase 5 代码对齐：types/mockFeedback/FeedbackPanel/reviewStore 全部更新至新结构 |
 | v2.3 | 2026/06/06 | Pre Phase 6 + Phase 6 + Polish：首页接口重构、回顾页完整 UI、ScrollFade、卡片高度、展开动画 |
+| v2.4 | 2026/06/06 | Phase 7：设置页完整功能（UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection） |

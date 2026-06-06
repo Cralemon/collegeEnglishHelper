@@ -710,7 +710,47 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | Pre Phase 6：首页接口重构 | ✅ Agent 完成 | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6：回顾页 | ✅ Agent 完成 | StatsOverview + ScoreTrendChart + ImprovementList |
 | Phase 6 Polish | ✅ Agent 完成 | ScrollFade 双端渐隐 + 卡片高度 + 数字放大 + 展开动画 |
-| Phase 7-10 | 待开始 | — |
+| **Phase 7：设置页** | ✅ Agent 完成 | UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection |
+| Phase 8-10 | 待开始 | — |
+
+---
+
+## Phase 7：设置页 ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 目标
+
+实现设置页完整功能：用户信息管理、应用配置、LLM 配置、数据管理。
+
+### 新增内容
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/settings/components/UserProfileForm.tsx` | 昵称（Input）、学年段（Tabs underline 7 选项）、词汇量（range slider 1000-15000 step500） |
+| `src/features/settings/components/AppConfigSection.tsx` | 翻译方向（中译英/英译中 pills）、翻译模式（单句/段落 pills）、外观主题（浅色/深色/跟随系统 pills）、题目偏好（8 个预设 chip toggle + 自定义 Textarea） |
+| `src/features/settings/components/LLMConfigSection.tsx` | API 地址（Input）、API Key（password 输入框 + 显隐切换 eye icon）、模型名称（Input） |
+| `src/features/settings/components/DataManagementSection.tsx` | 清除练习数据按钮（window.confirm + practiceStore.clearAll + reviewStore.clearImprovements） |
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/app/settings/page.tsx` | 替换占位内容为四组件组合，使用 ScrollFade + space-y-4 布局 |
+| `src/features/settings/index.ts` | 新增 4 个组件导出 |
+
+### 关键决策
+
+1. **学年段用 underline Tabs**：7 个选项（大一至研三）使用 underline variant 比 pills 更紧凑
+2. **词汇量用原生 range input**：自定义 accentColor 和渐变背景，移动端原生滑块体验更好
+3. **题目偏好用 chip toggle**：Button variant 在 primary/outline 间切换，比 checkbox 更触屏友好
+4. **LLM Key 显隐切换**：eye/eye-off SVG icon，默认隐藏 + 安全提示文字
+5. **数据清除仅删练习数据**：settingsStore（用户配置/LLM 配置）不受影响，localStorage 键独立
+
+### 构建验证
+
+`pnpm run build` 通过，零类型错误。
 
 ---
 

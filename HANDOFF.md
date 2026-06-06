@@ -16,10 +16,10 @@
 | Phase 5：数据结构重构 | ✅ | 对齐新 AI 反馈结构（Issue/IssueCategory/TranslationStrategy） |
 | Pre Phase 6：首页接口重构 | ✅ | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6：回顾页 | ✅ | StatsOverview + ScoreTrendChart + ImprovementList |
-| Phase 7：设置页 | ⬜ **下一步** | 用户信息 + 应用配置 |
-| Phase 8：LLM 集成 | ⬜ | 替换 mock 数据 |
+| Phase 7：设置页 | ✅ | 用户信息 + 应用配置 |
+| Phase 8：LLM 集成 | ⬜ **下一步** | 替换 mock 数据 |
 | Phase 9：学习闭环 | ⬜ | 用户画像 + 智能出题 |
-| Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |
+| Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |/cl 
 
 ## 写代码前必须阅读
 
@@ -105,53 +105,79 @@
 2. **图表颜色**：使用 `var(--color-primary)` 等 CSS 变量，自动跟随主题
 3. **extractImprovements 时机**：在 `useEffect` 中依赖 `answerRecords` 变化触发，确保回顾页数据始终最新
 
-## 下一步：Phase 7 设置页
+---
+
+## Phase 7 实现摘要
+
+### 新增文件
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/settings/components/UserProfileForm.tsx` | 昵称（Input）、学年段（Tabs underline 7 选项大一到研三）、词汇量（range slider 1000-15000 step500） |
+| `src/features/settings/components/AppConfigSection.tsx` | 翻译方向/翻译模式/外观主题（Tabs pills）、题目偏好（8 预设 chip toggle + 自定义 Textarea） |
+| `src/features/settings/components/LLMConfigSection.tsx` | API 地址（Input）、API Key（password + eye 显隐切换 + 安全提示）、模型名称（Input） |
+| `src/features/settings/components/DataManagementSection.tsx` | 清除练习数据按钮（window.confirm + practiceStore.clearAll + reviewStore.clearImprovements），仅删练习数据不删设置 |
+
+### 修改文件
+
+- `src/app/settings/page.tsx`：替换占位文字为四组件组合，ScrollFade + space-y-4
+- `src/features/settings/index.ts`：新增 4 个组件导出
+
+### 关键决策
+
+1. **学年段用 underline Tabs**：7 个选项用 underline variant 比 pills 更紧凑
+2. **词汇量用原生 range input**：移动端原生滑块体验最好，自定义 accentColor + 渐变背景
+3. **题目偏好用 chip toggle**：Button variant 在 primary/outline 间切换，比 checkbox 更触屏友好
+4. **LLM Key 显隐切换**：eye/eye-off SVG icon，默认隐藏
+5. **数据清除仅删练习数据**：settingsStore（用户配置/LLM 配置）不受影响
+
+---
+
+## 下一步：Phase 8 LLM 集成
 
 ### 背景
 
-设置页（`/settings`）目前是占位文字。Phase 7 目标是实现用户信息管理和应用配置，所有表单数据持久化到 `settingsStore`。
+目前练习页使用 `mockFeedback.ts` 生成模拟 AI 反馈。Phase 8 目标是接入真实 LLM（通过 Vercel AI SDK），实现 AI 驱动的翻译评估与反馈。
 
 ### 需要修改/新建的文件
 
 | 文件 | 当前状态 | 目标 |
 |------|---------|------|
-| `src/app/settings/page.tsx` | 空白占位 | 设置页完整 UI |
-| （新建）`src/features/settings/components/` | 不存在 | UserProfileForm、AppConfigSection、LLMConfigSection、DataManagementSection |
+| `src/features/practice/services/mockFeedback.ts` | 模拟反馈 | 保留作为 fallback，新建 LLM 调用服务 |
+| （新建）`src/app/api/feedback/route.ts` | 不存在 | Next.js API Route，调用 LLM 返回 AIFeedback |
+| （新建）`src/features/practice/services/llmFeedback.ts` | 不存在 | LLM 调用 + prompt 构建 + 响应校验 |
+| `src/features/practice/components/FeedbackPanel.tsx` | 已完成 | 可能需要适配流式响应 loading 状态 |
+| `src/app/page.tsx` | 已完成 | 替换 generateMockFeedback → LLM 调用 |
 
 ### 具体任务
 
-**Step 7.1：用户信息表单（UserProfileForm）**
-- 新建 `src/features/settings/components/UserProfileForm.tsx`
-- 字段：昵称（Input）、学年段（Tabs/选择）、预估词汇量（滑块或数字输入）
-- 数据源：`useSettingsStore` 的 `userProfile`，即时更新（onChange 触发 store action）
+**Step 8.1：API Route**
+- 新建 `src/app/api/feedback/route.ts`
+- POST handler 接收 `{ question, userTranslation, userProfile }` → 调用 LLM → 返回 `AIFeedback`
+- 使用 Vercel AI SDK `streamText` 或直接 `fetch` 调用 OpenAI 兼容 API
 
-**Step 7.2：应用配置区（AppConfigSection）**
-- 新建 `src/features/settings/components/AppConfigSection.tsx`
-- 翻译方向：中译英 / 英译中（切换按钮）
-- 翻译模式：单句 / 段落（切换按钮）
-- 外观主题：浅色 / 深色 / 跟随系统（`ThemePreference` 三选一）
-- 题目偏好：预设类型多选 + 自定义文本输入
+**Step 8.2：Prompt 构建**
+- 新建 `src/features/practice/services/llmFeedback.ts`
+- 基于 FINAL_PLAN §8 设计 System Prompt + User Prompt
+- 输出 JSON Schema 约束（AIFeedback 结构 + IssueCategory 枚举）
+- JSON 校验 + fallback 处理（解析失败时返回 mock 数据）
 
-**Step 7.3：LLM 配置区（LLMConfigSection）**
-- 新建 `src/features/settings/components/LLMConfigSection.tsx`
-- 字段：API 地址、API Key（密码输入框）、模型名称
-- 数据源：`useSettingsStore` 的 `llmConfig`
+**Step 8.3：集成到练习页**
+- 修改 `src/app/page.tsx`：提交答案时调用 LLM API Route 替代 `generateMockFeedback`
+- loading 状态：`isEvaluating` 期间显示加载动画
+- 错误处理：调用失败时 fallback 到 mock 数据
 
-**Step 7.4：数据管理区（DataManagementSection）**
-- 新建 `src/features/settings/components/DataManagementSection.tsx`
-- 清除练习数据按钮（调用 `practiceStore.clearAll` + `reviewStore.clearImprovements`）
-- 操作前弹出确认（使用 `window.confirm` 即可，Phase 10 再优化）
-
-**Step 7.5：组装设置页**
-- 修改 `src/app/settings/page.tsx`
-- 布局：垂直滚动，各区域卡片分组，标题 + 内容
+**Step 8.4：设置页联动**
+- 确认 LLM 配置（`/settings` 中的 API 地址/Key/模型）在 LLM 调用中生效
+- API Route 读取 `llmConfig`（从请求 body 或 server-side 读取）
 
 ### 验收标准
 
 1. `pnpm run build` 无类型错误
-2. 昵称、学年段等修改后刷新页面数据仍保留（持久化验证）
-3. 清除数据后首页和回顾页数据清空
+2. 填入有效 API Key 后能获得真实 AI 反馈
+3. API 调用失败时不崩溃，fallback 到模拟数据
+4. FeedbackPanel 正确展示真实 LLM 返回的数据
 
 ---
 
-*Phase 6 + Polish 已完成（2026-06-06）。Phase 7 完成后更新此文件。*
+*Phase 7 已完成（2026-06-06）。Phase 8 完成后更新此文件。*
