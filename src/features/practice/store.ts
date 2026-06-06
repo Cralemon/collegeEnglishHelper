@@ -75,23 +75,31 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
         set({ questions, currentIndex: 0, draft: '', isFlipped: false }),
 
       setCurrentIndex: (index) => {
-        const { questions } = get();
+        const { questions, answerRecords } = get();
         if (index >= 0 && index < questions.length) {
-          set({ currentIndex: index, draft: '', isFlipped: false });
+          const questionId = questions[index]?.id;
+          const hasAnswer = answerRecords.some((r) => r.questionId === questionId);
+          set({ currentIndex: index, draft: '', isFlipped: hasAnswer });
         }
       },
 
       nextQuestion: () => {
-        const { currentIndex, questions } = get();
+        const { currentIndex, questions, answerRecords } = get();
         if (currentIndex < questions.length - 1) {
-          set({ currentIndex: currentIndex + 1, draft: '', isFlipped: false });
+          const nextIndex = currentIndex + 1;
+          const nextQuestionId = questions[nextIndex]?.id;
+          const hasAnswer = answerRecords.some((r) => r.questionId === nextQuestionId);
+          set({ currentIndex: nextIndex, draft: '', isFlipped: hasAnswer });
         }
       },
 
       prevQuestion: () => {
-        const { currentIndex } = get();
+        const { currentIndex, questions, answerRecords } = get();
         if (currentIndex > 0) {
-          set({ currentIndex: currentIndex - 1, draft: '', isFlipped: false });
+          const prevIndex = currentIndex - 1;
+          const prevQuestionId = questions[prevIndex]?.id;
+          const hasAnswer = answerRecords.some((r) => r.questionId === prevQuestionId);
+          set({ currentIndex: prevIndex, draft: '', isFlipped: hasAnswer });
         }
       },
 
