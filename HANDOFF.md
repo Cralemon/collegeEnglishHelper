@@ -22,12 +22,6 @@
 2. `FINAL_PLAN.md` — 完整开发规划（需求、设计规范、数据模型）
 3. `awesome-design-md/design-md/claude/DESIGN.md` — Claude 设计规范
 
-## 已知问题
-
-- `src-tauri/gen/` 是 Tauri 自动生成目录，未在 `.gitignore` 中，提交时忽略
-- `BuildTask.kt` 中 node 路径硬编码，换机器或换 node 版本需手动更新
-- `public/fonts/` 在 `.gitignore` 中，首次 clone 需手动复制字体文件（WOFF2 子集，~8MB）
-
 ## 关键文件索引
 
 | 用途 | 路径 |

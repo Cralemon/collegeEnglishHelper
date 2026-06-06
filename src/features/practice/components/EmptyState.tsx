@@ -41,7 +41,7 @@ export function EmptyState({
         <Button
           variant="secondary"
           size="md"
-          className="flex-1 w-full sm:w-auto"
+          className="w-full sm:flex-1 sm:w-auto"
           onClick={() => router.push('/settings')}
         >
           前往设置
@@ -49,7 +49,7 @@ export function EmptyState({
         <Button
           variant="primary"
           size="md"
-          className="flex-1 w-full sm:w-auto"
+          className="w-full sm:flex-1 sm:w-auto"
           loading={isGenerating}
           onClick={onGenerate}
         >
