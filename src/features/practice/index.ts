@@ -9,3 +9,9 @@ export type {
   QuestionGenerationPromptParams,
   PromptPair,
 } from './services/prompts';
+export {
+  evaluateTranslation,
+  generateQuestions,
+  LLMError,
+} from './services/llmClient';
+export type { LLMErrorCode } from './services/llmClient';

@@ -712,7 +712,8 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | Phase 6 Polish | ✅ Agent 完成 | ScrollFade 双端渐隐 + 卡片高度 + 数字放大 + 展开动画 |
 | **Phase 7：设置页** | ✅ Agent 完成 | UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection |
 | **Pre Phase 8：LLM 提示词设计** | ✅ Agent 完成 | 2 个接入点梳理 + prompts.ts 落地 |
-| Phase 8-10 | 待开始 | — |
+| **Phase 8：LLM 集成** | ✅ Agent 完成 | llmClient.ts + page.tsx 接入 + LLM 优先 mock 降级 |
+| Phase 9-10 | 待开始 | — |
 
 ---
 
@@ -824,6 +825,66 @@ buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPai
 4. **学年段自适应难度**：`getDifficultyDistribution()` 返回 easy:medium:hard 比例（大一 4:4:2 → 研究生 1:4:5）
 5. **主题标签中文化**：`PresetTopic` enum 值自动映射为中文标签（如 `'red-theme'` → `'红色主题'`）
 6. **纯字符串操作**：`fill()` 函数做 `{{key}}` 替换，不引入 Handlebars 等模板引擎依赖
+
+### 构建验证
+
+`pnpm run build` 通过，零类型错误。
+
+---
+
+---
+
+## Phase 8：LLM 集成 ✅
+
+**执行者**：Agent
+**日期**：2026-06-07
+
+### 目标
+
+接入真实 LLM（OpenAI 兼容 API），替换 mock 数据作为主要反馈来源。LLM 失败时自动降级到 mock。
+
+### 新增内容
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/practice/services/llmClient.ts` | LLM API 客户端：`callLLM()` → `extractJSON()` → `evaluateTranslation()` / `generateQuestions()` |
+
+### 核心设计
+
+```
+page.tsx
+  → evaluateTranslation(config, params)
+    → buildFeedbackPrompt(params)  // prompts.ts
+    → callLLM(config, sys, user)   // fetch OpenAI API
+    → extractJSON(raw)             // handle ```json blocks
+    → validate structure           // check score/translationStrategy/etc.
+    → return AIFeedback
+  (on error) → generateMockFeedback()  // mock fallback
+```
+
+### 错误分级（LLMError.code）
+
+| Code | 触发条件 | 处理 |
+|------|---------|------|
+| `NO_API_KEY` | apiKey 为空 | mock fallback |
+| `NETWORK_ERROR` | fetch 失败 / 超时 60s | mock fallback |
+| `API_ERROR` | 非 2xx 响应 | mock fallback |
+| `PARSE_ERROR` | JSON 解析失败 / 结构校验失败 | mock fallback |
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/app/page.tsx` | `handleSubmit`：LLM → mock fallback，移除 800ms 人工延迟；`handleGenerate`：LLM → mock fallback，移除 600ms 人工延迟，传入 existingTexts 去重 |
+| `src/features/practice/index.ts` | 新增 `evaluateTranslation`/`generateQuestions`/`LLMError`/`LLMErrorCode` 导出 |
+
+### 关键决策
+
+1. **纯 fetch，不引入 AI SDK**：OpenAI 兼容 API 足够简单，fetch 直接调用减少依赖
+2. **60s 超时**：AbortController + setTimeout，覆盖大多数 LLM 响应时间
+3. **JSON 提取三层策略**：```json block → 裸 {}[] 定位 → 回退原文
+4. **结构校验不重试**：校验失败直接抛 PARSE_ERROR，由调用方决定是否重试（当前不重试，直接 mock fallback）
+5. **mock 保留为安全网**：用户无感知降级，console.warn 输出错误码方便调试
 
 ### 构建验证
 

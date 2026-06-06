@@ -305,14 +305,14 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 
 > 详细提示词设计见 `HANDOFF.md` Pre Phase 8 章节。实现代码见 `src/features/practice/services/prompts.ts`。
 
-### Phase 8：LLM 集成 ⬜
+### Phase 8：LLM 集成 ✅
 
 **目标**：替换 mock 数据，接入真实 LLM
 
-- [ ] Prompt 设计：输出 AIFeedback 结构，包含 IssueCategory 枚举约束
-- [ ] Vercel AI SDK 集成：API Route + 流式响应
-- [ ] 输出校验：JSON Schema 验证 + fallback 处理
-- [ ] 题目生成：基于用户画像（weakCategories）智能出题
+- [x] Prompt 设计：输出 AIFeedback 结构，包含 IssueCategory 枚举约束
+- [x] fetch 调用 OpenAI 兼容 API（无需 Vercel AI SDK）
+- [x] 输出校验：JSON 提取 + 结构校验 + mock fallback
+- [x] 题目生成：支持用户画像参数（weakCategories 待 Phase 9 传入）
 
 ### Phase 9：学习闭环 ⬜
 
@@ -374,3 +374,4 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 | v2.4 | 2026/06/06 | Phase 7：设置页完整功能（UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection） |
 | v2.5 | 2026/06/07 | Pre Phase 8：LLM 接入点梳理 + 提示词设计（翻译反馈 + 题目生成两个 System/User Prompt） |
 | v2.6 | 2026/06/07 | Pre Phase 8 落地：prompts.ts 实现 + 条件块机制 + 学年段自适应评分/难度 |
+| v2.7 | 2026/06/07 | Phase 8：LLM 集成 — llmClient.ts + page.tsx 接入 + LLMError 分级 + mock 降级 |

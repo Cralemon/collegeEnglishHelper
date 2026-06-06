@@ -9,9 +9,10 @@ import {
   CardBack,
   EmptyState,
 } from '@/features/practice/components';
+import { evaluateTranslation, generateQuestions, LLMError } from '@/features/practice/services/llmClient';
 import { generateMockFeedback, computeTotalScore } from '@/features/practice/services/mockFeedback';
 import { mockGenerateQuestions } from '@/features/practice/services/mockGenerateQuestions';
-import type { AnswerRecord } from '@/types';
+import type { AnswerRecord, AIFeedback } from '@/types';
 
 export default function HomePage() {
   const {
@@ -29,7 +30,7 @@ export default function HomePage() {
     setEvaluating,
     answerRecords,
   } = usePracticeStore();
-  const { userProfile } = useSettingsStore();
+  const { userProfile, llmConfig } = useSettingsStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const currentQuestion = questions[currentIndex];
@@ -39,23 +40,62 @@ export default function HomePage() {
 
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
-    await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
-    const newQuestions = mockGenerateQuestions(userProfile, 10);
-    setQuestions(newQuestions);
+
+    let newQuestions: typeof questions;
+    try {
+      newQuestions = await generateQuestions(llmConfig, {
+        direction: userProfile.translationDirection,
+        gradeLevel: userProfile.gradeLevel,
+        vocabularyLevel: userProfile.vocabularyLevel,
+        presetTopics: userProfile.topicPreference.presetTopics,
+        customTopics: userProfile.topicPreference.customTopics,
+        count: 10,
+        existingTexts: questions.map((q) => q.sourceText),
+      });
+    } catch (err) {
+      // LLM 失败时降级到 mock 数据
+      if (err instanceof LLMError) {
+        console.warn(`[LLM] 题目生成失败 (${err.code})，使用 mock 数据：${err.message}`);
+      } else {
+        console.warn('[LLM] 题目生成未知错误，使用 mock 数据：', err);
+      }
+      newQuestions = mockGenerateQuestions(userProfile, 10);
+    }
+
+    if (newQuestions.length > 0) {
+      setQuestions(newQuestions);
+    }
     setIsGenerating(false);
-  }, [userProfile, setQuestions]);
+  }, [userProfile, llmConfig, questions, setQuestions]);
 
   const handleSubmit = useCallback(async () => {
     if (!draft.trim() || !currentQuestion) return;
 
     setEvaluating(true);
-    await new Promise((r) => setTimeout(r, 800 + Math.random() * 700));
 
-    const feedback = generateMockFeedback(
-      currentQuestion.sourceText,
-      draft,
-      userProfile.translationDirection,
-    );
+    let feedback: AIFeedback;
+    try {
+      feedback = await evaluateTranslation(llmConfig, {
+        sourceText: currentQuestion.sourceText,
+        userTranslation: draft,
+        direction: userProfile.translationDirection,
+        gradeLevel: userProfile.gradeLevel,
+        vocabularyLevel: userProfile.vocabularyLevel,
+      });
+    } catch (err) {
+      // LLM 失败时降级到 mock 数据
+      if (err instanceof LLMError) {
+        console.warn(`[LLM] 翻译评估失败 (${err.code})，使用 mock 数据：${err.message}`);
+      } else {
+        console.warn('[LLM] 翻译评估未知错误，使用 mock 数据：', err);
+      }
+      feedback = generateMockFeedback(
+        currentQuestion.sourceText,
+        draft,
+        userProfile.translationDirection,
+      );
+    }
+
     const score = computeTotalScore(feedback);
 
     const record: AnswerRecord = {
@@ -69,7 +109,7 @@ export default function HomePage() {
 
     submitAnswer(record);
     setEvaluating(false);
-  }, [draft, currentQuestion, userProfile.translationDirection, submitAnswer, setEvaluating]);
+  }, [draft, currentQuestion, userProfile.translationDirection, userProfile.gradeLevel, userProfile.vocabularyLevel, llmConfig, submitAnswer, setEvaluating]);
 
   if (questions.length === 0) {
     return (

@@ -18,7 +18,8 @@
 | Phase 6：回顾页 | ✅ | StatsOverview + ScoreTrendChart + ImprovementList |
 | Phase 7：设置页 | ✅ | 用户信息 + 应用配置 |
 | Pre Phase 8：LLM 提示词设计 | ✅ | prompts.ts 已创建，两个 Prompt Builder 函数就绪 |
-| Phase 8：LLM 集成 | ⬜ | 替换 mock 数据 |
+| **Phase 8：LLM 集成** | ✅ | llmClient.ts + page.tsx 集成，LLM 优先 + mock 降级 |
+| Phase 9：学习闭环 | ⬜ **下一步** | 用户画像 + 智能出题 |
 | Phase 9：学习闭环 | ⬜ | 用户画像 + 智能出题 |
 | Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |/cl 
 
@@ -37,6 +38,8 @@
 | 回顾页 Store | `src/features/review/store.ts` |
 | 设置 Store | `src/features/settings/store.ts` |
 | 模拟反馈生成 | `src/features/practice/services/mockFeedback.ts` |
+| LLM 提示词构建 | `src/features/practice/services/prompts.ts` |
+| LLM API 客户端 | `src/features/practice/services/llmClient.ts` |
 | 反馈面板组件 | `src/features/practice/components/FeedbackPanel.tsx` |
 | localStorage 封装 | `src/services/storage.ts` |
 | 底部导航 | `src/components/layout/BottomNav.tsx` |
@@ -359,38 +362,82 @@ buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPai
 
 ---
 
-## 下一步：Phase 8 — LLM 集成
+## Phase 8 实现摘要
+
+### 新增文件
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/practice/services/llmClient.ts` | LLM API 客户端，fetch 调用 OpenAI 兼容 API + JSON 提取 + 结构校验 |
+
+### 核心函数
+
+```typescript
+// 翻译反馈评估 — LLM 优先，失败抛 LLMError
+evaluateTranslation(config, params): Promise<AIFeedback>
+
+// 题目生成 — LLM 优先，失败抛 LLMError
+generateQuestions(config, params): Promise<Question[]>
+
+// 错误类型
+class LLMError extends Error { code: LLMErrorCode }
+```
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `src/app/page.tsx` | `handleSubmit` → `evaluateTranslation()` + mock fallback；`handleGenerate` → `generateQuestions()` + mock fallback；移除人工延迟 |
+| `src/features/practice/index.ts` | 新增 llmClient 导出 |
+
+### 关键决策
+
+1. **纯 fetch 实现**：不引入 Vercel AI SDK，OpenAI 兼容 API 用 fetch 足够
+2. **LLMError 分级**：`NO_API_KEY` / `NETWORK_ERROR` / `API_ERROR` / `PARSE_ERROR`，调用方可按 code 区分
+3. **JSON 提取鲁棒**：依次尝试 ```json code block → 裸 {}/[] → 回退原文
+4. **结构校验**：反馈校验 score + translationStrategy + overallSuggestion；出题校验 questions 非空
+5. **mock 保留为降级**：LLM 失败自动 fallback，用户无感知
+6. **移除人工延迟**：`setTimeout` 模拟延迟已删除
+
+---
+
+## 下一步：Phase 9 — 学习闭环
 
 ### 背景
 
-Pre Phase 8 已完成提示词设计 + 代码落地。Phase 8 将替换 mock 数据，接入真实 LLM。
+Phase 8 已接入真实 LLM。Phase 9 将实现「答题→反馈→优化」的完整循环：
+每次答题后更新用户画像（LearningData），画像指导下一次出题。
 
 ### 需要修改的文件
 
 | 文件 | 当前状态 | 目标 |
 |------|---------|------|
-| `src/app/page.tsx` | 调用 `generateMockFeedback` / `mockGenerateQuestions` | 调用 LLM（通过 `llmClient`） |
-| `src/features/practice/services/` | 仅有 mock + prompts | 新增 `llmClient.ts`（调用 LLM + 解析响应） |
+| `src/features/review/store.ts` | 仅有 improvementPoints | 新增 LearningData 计算（totalQuestions/averageScore/dimensionScores/weakCategories/strongCategories/recentTrend） |
+| `src/features/practice/store.ts` | 管理 questions + answerRecords | 答题时触发 LearningData 更新 |
+| `src/app/page.tsx` | 调用 LLM 但未传 weakCategories | 传入 weakCategories 指导出题 |
 
 ### 具体任务
 
-**Step 8.1：创建 LLM 客户端**
-- 新建 `src/features/practice/services/llmClient.ts`
-- 使用 fetch 调用 OpenAI 兼容 API
-- 实现 `evaluateTranslation()` → 调用 `buildFeedbackPrompt()` + LLM → 返回 `AIFeedback`
-- 实现 `generateQuestions()` → 调用 `buildQuestionGenerationPrompt()` + LLM → 返回 `Question[]`
-- JSON 解析 + try/catch，失败时 fallback 到 mock 数据
+**Step 9.1：LearningData 数据流**
+- reviewStore 新增 `learningData: LearningData` 状态
+- `extractImprovements()` 同步计算 LearningData（各维度平均分、weak/strong categories、trend）
+- practiceStore 每次 `submitAnswer()` 后触发 `reviewStore.extractImprovements()`
 
-**Step 8.2：集成到 page.tsx**
-- `handleSubmit`：`generateMockFeedback()` → `evaluateTranslation()`
-- `handleGenerate`：`mockGenerateQuestions()` → `generateQuestions()`
+**Step 9.2：掌握度追踪**
+- 实现 `updateMastery()` 逻辑（出现 -10，连续 5 次未出现 +5）
+- mastery > 80 标记为"已掌握"，不再优先推荐
 
-**Step 8.3：错误处理**
-- 网络错误 / API Key 未配置 → 使用 mock fallback
-- LLM 返回格式异常 → JSON 校验 + 重试 1 次
+**Step 9.3：弱项驱动出题**
+- `handleGenerate` 读取 `reviewStore.learningData.weakCategories`
+- 传入 `generateQuestions()` 的 `weakCategories` 参数
+- LLM 根据薄弱领域定向出题
+
+**Step 9.4：设置页画像展示（可选）**
+- Settings 页面新增 LearningData 展示卡片
+- 显示：各维度平均分、薄弱领域、学习趋势
 
 ### 验收标准
 
 1. `pnpm run build` 无类型错误
-2. 配置 API Key 后能正常调用 LLM 获取反馈
-3. 无 API Key 时自动降级到 mock 数据
+2. 答题后 reviewStore.learningData 正确更新
+3. 出题时 LLM 收到 weakCategories，生成的题目覆盖薄弱领域
