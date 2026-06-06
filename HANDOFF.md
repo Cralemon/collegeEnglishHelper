@@ -14,6 +14,7 @@
 | Phase 3：状态管理与数据层 | ✅ | Zustand stores + localStorage |
 | Phase 4：练习页核心 | ✅ | FlashCard 叠卡 + 3D 翻转 + 模拟反馈 |
 | Phase 5：数据结构重构 | ✅ | 对齐新 AI 反馈结构（Issue/IssueCategory/TranslationStrategy） |
+| Pre Phase 6：首页接口重构 | ✅ | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6：回顾页 | ⬜ **下一步** | 统计 + 改进点列表 |
 | Phase 7：设置页 | ⬜ | 用户信息 + 应用配置 |
 | Phase 8：LLM 集成 | ⬜ | 替换 mock 数据 |
@@ -39,6 +40,20 @@
 | localStorage 封装 | `src/services/storage.ts` |
 | 底部导航 | `src/components/layout/BottomNav.tsx` |
 | 基础 UI 组件 | `src/components/ui/` |
+
+## Pre Phase 6 实现摘要
+
+### 关键变更
+
+1. **旧数据兼容**（`practiceStore`）：新增 `version: 2 + migrate`，旧 `answerRecords`（缺少 `issues`/`translationStrategy`/`overallSuggestion`）在加载时自动补全，修复运行时 TypeError
+
+2. **CardFront 接口重构**：改为纯 props 组件（`question`/`direction`/`draft`/`isEvaluating`/`onDraftChange`/`onSubmit`），移除对 store 和 `generateMockFeedback` 的直接依赖
+
+3. **CardBack 接口重构**：改为纯 props 组件（`record`/`isLastQuestion`/`onNext`），移除对 store 的直接依赖
+
+4. **page.tsx 接管业务逻辑**：`generateMockFeedback` 调用、`submitAnswer`、`currentRecord` 查找全部移至 `page.tsx`，向 CardFront/CardBack 传 props
+
+---
 
 ## Phase 5 实现摘要
 

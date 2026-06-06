@@ -649,6 +649,34 @@ type IssueCategory =
 
 ---
 
+## Pre Phase 6：首页接口重构 ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 问题背景
+
+Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`（无 `issues` 字段）导致 `FeedbackPanel` 运行时 TypeError：`Cannot read properties of undefined (reading 'length')`。
+
+同时，`CardFront`/`CardBack` 直接读取 store 和调用 `generateMockFeedback`，接口不清晰。
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/features/practice/store.ts` | 新增 `version: 2 + migrate`：旧 answerRecords 自动补全 issues/translationStrategy/overallSuggestion |
+| `src/features/practice/components/CardFront.tsx` | 改为纯 props 组件，移除 store/mockFeedback 直接依赖 |
+| `src/features/practice/components/CardBack.tsx` | 改为纯 props 组件，移除 store 直接依赖 |
+| `src/app/page.tsx` | 接管 generateMockFeedback/submitAnswer/currentRecord 查找，向子组件传 props |
+
+### 关键决策
+
+1. **migrate 而非防御性代码**：在 store 层做一次性迁移比在每个组件里做 `issues ?? []` 更干净，且不影响类型安全
+2. **迁移时补全最小字段**：旧 `translationStrategy` 用 `{ approach: '直译意译结合', strengths: [], suggestions: [], keyPoints: [] }` 作为 fallback，不崩溃即可
+3. **page.tsx 作为 Controller**：CardFront/CardBack 变为纯展示组件，业务逻辑集中在 page.tsx，符合单向数据流
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -659,6 +687,7 @@ type IssueCategory =
 | Step 4：状态管理与数据层 | ✅ Agent 完成 | Zustand stores + localStorage + 类型定义 |
 | Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 叠卡 + 3D 翻转 + 滑动手势 + 模拟反馈 + v2 迭代 |
 | Phase 5：数据结构重构 | ✅ Agent 完成 | types/mockFeedback/FeedbackPanel/reviewStore 对齐新结构 |
+| Pre Phase 6：首页接口重构 | ✅ Agent 完成 | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6-10 | 待开始 | — |
 
 ---
