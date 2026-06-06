@@ -99,7 +99,9 @@ export default function HomePage() {
     <CardBack
       record={currentRecord}
       isLastQuestion={currentIndex >= questions.length - 1}
+      isGenerating={isGenerating}
       onNext={nextQuestion}
+      onGenerateNext={handleGenerate}
     />
   ) : null;
 

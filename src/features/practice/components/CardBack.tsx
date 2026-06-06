@@ -9,10 +9,12 @@ import type { AnswerRecord } from '@/types';
 interface CardBackProps {
   record: AnswerRecord;
   isLastQuestion: boolean;
+  isGenerating: boolean;
   onNext: () => void;
+  onGenerateNext: () => void;
 }
 
-export function CardBack({ record, isLastQuestion, onNext }: CardBackProps) {
+export function CardBack({ record, isLastQuestion, isGenerating, onNext, onGenerateNext }: CardBackProps) {
   const score = computeTotalScore(record.feedback);
 
   return (
@@ -29,14 +31,24 @@ export function CardBack({ record, isLastQuestion, onNext }: CardBackProps) {
 
       {/* 固定底部 */}
       <div className="pt-4 shrink-0">
-        <Button
-          variant="primary"
-          className="w-full"
-          onClick={onNext}
-          disabled={isLastQuestion}
-        >
-          {isLastQuestion ? '已是最后一题' : '下一题 →'}
-        </Button>
+        {isLastQuestion ? (
+          <Button
+            variant="primary"
+            className="w-full"
+            loading={isGenerating}
+            onClick={onGenerateNext}
+          >
+            {isGenerating ? '生成中...' : '生成下一组题目'}
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={onNext}
+          >
+            下一题 →
+          </Button>
+        )}
       </div>
     </div>
   );
