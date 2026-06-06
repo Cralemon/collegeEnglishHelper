@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { usePracticeStore } from '@/features/practice';
 import { useSettingsStore } from '@/features/settings';
 import {
@@ -30,10 +30,31 @@ export default function HomePage() {
     submitAnswer,
     setEvaluating,
     answerRecords,
+    clearQuestions,
   } = usePracticeStore();
   const { userProfile, llmConfig } = useSettingsStore();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 点击菜单外部关闭
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  const handleClearQuestions = useCallback(() => {
+    clearQuestions();
+    setMenuOpen(false);
+    toast('题目已清除，作答记录保留', 'info');
+  }, [clearQuestions, toast]);
 
   const currentQuestion = questions[currentIndex];
   const currentRecord = currentQuestion
@@ -121,10 +142,47 @@ export default function HomePage() {
     setEvaluating(false);
   }, [draft, currentQuestion, userProfile.translationDirection, userProfile.gradeLevel, userProfile.vocabularyLevel, llmConfig, submitAnswer, setEvaluating, toast]);
 
+  // 标题栏（含菜单按钮）
+  const titleBar = (
+    <div className="flex items-center justify-between mb-6 shrink-0">
+      <h1 className="text-display-sm text-ink">翻译练习</h1>
+      <div ref={menuRef} className="relative">
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          className="w-9 h-9 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface-card transition-colors"
+          aria-label="更多操作"
+        >
+          <svg width="18" height="4" viewBox="0 0 18 4" fill="currentColor">
+            <circle cx="2" cy="2" r="2" />
+            <circle cx="9" cy="2" r="2" />
+            <circle cx="16" cy="2" r="2" />
+          </svg>
+        </button>
+        {menuOpen && (
+          <div className="absolute right-0 top-full mt-1 w-44 bg-surface-card border border-hairline rounded-lg shadow-lg py-1 z-50">
+            <button
+              onClick={() => { setMenuOpen(false); handleGenerate(); }}
+              disabled={isGenerating}
+              className="w-full text-left px-4 py-2.5 text-body-sm text-ink hover:bg-surface-soft transition-colors"
+            >
+              重新生成题目
+            </button>
+            <button
+              onClick={handleClearQuestions}
+              className="w-full text-left px-4 py-2.5 text-body-sm text-ink hover:bg-surface-soft transition-colors"
+            >
+              清除当前题目
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   if (questions.length === 0) {
     return (
       <div className="flex flex-col flex-1 min-h-0">
-        <h1 className="text-display-sm text-ink mb-6 shrink-0">翻译练习</h1>
+        {titleBar}
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <EmptyState isGenerating={isGenerating} onGenerate={handleGenerate} />
         </div>
@@ -157,7 +215,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <h1 className="text-display-sm text-ink mb-6 shrink-0">翻译练习</h1>
+      {titleBar}
       <FlashCard
         isFlipped={isFlipped}
         onFlip={setFlipped}

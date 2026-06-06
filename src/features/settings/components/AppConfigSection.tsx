@@ -115,6 +115,9 @@ export function AppConfigSection() {
             onChange={(e) => setCustomTopics(e.target.value)}
             rows={3}
           />
+          <p className="text-caption text-muted mt-1">
+            题目偏好修改后，将在下一次生成题目时生效
+          </p>
         </div>
       </CardContent>
     </Card>

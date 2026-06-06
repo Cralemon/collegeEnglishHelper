@@ -62,7 +62,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {/* Toast 容器 — 固定顶部居中，pointer-events-none 确保不阻挡交互 */}
       <div
         className="fixed top-0 left-1/2 -translate-x-1/2 z-[100] pt-4 px-4 w-full max-w-md pointer-events-none flex flex-col items-center gap-2"
         aria-live="polite"
@@ -79,26 +78,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 // 单个 Toast（带动画）
 // ============================================================
 
-/** Claude 设计规范：cookie-consent-card → surface-dark + on-dark + body-sm + rounded-lg */
-const TOAST_DURATION = 3000;
-
-/** 类型 → 左边框颜色（使用 var() 引用 CSS 变量，避免 Tailwind 类名解析问题） */
-const ACCENT_COLORS: Record<ToastType, string> = {
-  error: 'var(--color-error)',
-  warning: 'var(--color-warning)',
-  success: 'var(--color-success)',
-  info: 'var(--color-accent-teal)',
+/** 半透明背景色 — Claude 语义色 + 88% 不透明度，深浅模式下统一 */
+const TOAST_BG: Record<ToastType, string> = {
+  error: 'rgba(198, 69, 69, 0.88)',
+  warning: 'rgba(212, 160, 23, 0.88)',
+  success: 'rgba(93, 184, 114, 0.88)',
+  info: 'rgba(93, 184, 166, 0.88)',
 };
+
+const TOAST_DURATION = 3000;
 
 function ToastItemView({ item, onDone }: { item: ToastItem; onDone: () => void }) {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    // 进入动画：下一帧触发
     const enterTimer = setTimeout(() => setVisible(true), 16);
 
-    // 自动消失：3s 后隐藏 → 200ms 动画完成后移除
     const exitTimer = setTimeout(() => {
       setVisible(false);
       timerRef.current = setTimeout(onDone, 200);
@@ -114,18 +110,19 @@ function ToastItemView({ item, onDone }: { item: ToastItem; onDone: () => void }
   return (
     <div
       className={cn(
-        'pointer-events-auto w-full rounded-lg px-4 py-3 shadow-lg transition-all duration-200',
+        'pointer-events-auto rounded-full px-5 py-2.5 shadow-lg transition-all duration-200 max-w-full',
         visible
           ? 'translate-y-2 opacity-100'
           : '-translate-y-4 opacity-0',
       )}
       style={{
-        backgroundColor: 'var(--color-surface-dark)',
-        color: 'var(--color-on-dark)',
-        borderLeft: `4px solid ${ACCENT_COLORS[item.type]}`,
+        backgroundColor: TOAST_BG[item.type],
+        color: '#ffffff',
         fontSize: '14px',
-        fontWeight: 400,
-        lineHeight: 1.55,
+        fontWeight: 500,
+        lineHeight: 1.4,
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
       role="alert"
     >

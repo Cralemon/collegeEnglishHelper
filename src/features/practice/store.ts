@@ -45,7 +45,9 @@ interface PracticeActions {
   shuffleQuestions: () => void;
   /** 重置练习状态（保留题目） */
   resetPractice: () => void;
-  /** 清空全部数据 */
+  /** 仅清空当前题目（保留作答记录，供回顾页引用） */
+  clearQuestions: () => void;
+  /** 清空全部数据（题目 + 作答记录） */
   clearAll: () => void;
 }
 
@@ -128,6 +130,9 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
 
       resetPractice: () =>
         set({ currentIndex: 0, draft: '', isFlipped: false, isEvaluating: false }),
+
+      clearQuestions: () =>
+        set({ questions: [], currentIndex: 0, draft: '', isFlipped: false }),
 
       clearAll: () => set(initialState),
     }),
