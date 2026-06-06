@@ -19,9 +19,8 @@ const SWIPE_THRESHOLD = 80;
 /**
  * 3D 翻转卡片容器
  *
+ * flex-1 填充父级剩余空间，不使用 dvh 固定高度，避免溢出产生滚动条。
  * 始终渲染正反两面，通过 backfaceVisibility + rotateY 控制可见性。
- * isFlipped=false：rotateY(0)，正面可见。
- * isFlipped=true：rotateY(180)，背面可见（预旋转 180° + 父 180° = 360° = 正向）。
  */
 export function FlashCard({
   isFlipped,
@@ -53,8 +52,8 @@ export function FlashCard({
   return (
     <div
       className={cn(
-        'relative w-full max-w-[640px] mx-auto max-h-[700px]',
-        'h-[calc(100dvh-12rem)]',
+        'relative w-full max-w-[640px] mx-auto',
+        'flex-1 min-h-0',
         '[perspective:1000px]',
         className,
       )}
@@ -75,15 +74,12 @@ export function FlashCard({
         }}
         className="w-full h-full rounded-xl bg-surface-card border border-hairline touch-pan-y"
       >
-        {/* 正面：rotateY(0)，父 rotateY(0) 时可见 */}
         <div
           className="absolute inset-0 w-full h-full overflow-y-auto"
           style={{ backfaceVisibility: 'hidden' }}
         >
           {front}
         </div>
-
-        {/* 背面：预旋转 180°，父 rotateY(180) 时 180+180=360° 正向可见 */}
         <div
           className="absolute inset-0 w-full h-full overflow-y-auto"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
