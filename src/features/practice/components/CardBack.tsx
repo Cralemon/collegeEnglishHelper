@@ -9,19 +9,14 @@ import { computeTotalScore } from '@/features/practice/services/mockFeedback';
 
 /**
  * 卡片背面 — AI 反馈展示
- *
- * 布局：固定分数 + 可滚动反馈区 + 固定底部
  */
 export function CardBack() {
   const { answerRecords, nextQuestion, questions, currentIndex } =
     usePracticeStore();
 
-  // 获取当前题目的最新作答记录
   const currentQuestion = questions[currentIndex];
   const currentRecord = currentQuestion
-    ? [...answerRecords]
-        .reverse()
-        .find((r) => r.questionId === currentQuestion.id)
+    ? [...answerRecords].reverse().find((r) => r.questionId === currentQuestion.id)
     : undefined;
 
   const handleNext = useCallback(() => {
@@ -34,19 +29,19 @@ export function CardBack() {
   const isLastQuestion = currentIndex >= questions.length - 1;
 
   return (
-    <div className="bg-surface-card h-full flex flex-col rounded-xl">
+    <div className="h-full flex flex-col p-6">
       {/* 固定分数 */}
-      <div className="px-6 pt-5 pb-3 shrink-0">
+      <div className="mb-4 shrink-0">
         <ScoreDisplay score={score} />
       </div>
 
-      {/* 可滚动反馈区 */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-3">
+      {/* 可滚动反馈 */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <FeedbackPanel feedback={currentRecord.feedback} />
       </div>
 
-      {/* 固定底部：下一题按钮 */}
-      <div className="px-6 pb-5 pt-2 shrink-0">
+      {/* 固定底部 */}
+      <div className="pt-4 shrink-0">
         <Button
           variant="primary"
           className="w-full"

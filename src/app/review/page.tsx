@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 export default function ReviewPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-display-sm text-ink">回顾与统计</h1>
+      <h1 className="text-display-sm text-ink">回顾与统计</h1>
 
       <Card>
         <CardHeader>

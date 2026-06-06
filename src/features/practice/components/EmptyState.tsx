@@ -29,7 +29,7 @@ export function EmptyState({
       <CardContent>
         <div className="flex flex-col items-center text-center py-4">
           <div className="text-5xl mb-4">📝</div>
-          <h2 className="font-display text-title-lg text-ink mb-2">
+          <h2 className="text-title-lg text-ink mb-2">
             还没有题目
           </h2>
           <p className="text-body-md text-muted">

@@ -11,10 +11,8 @@
 
 @theme {
   /* ===== Font families ===== */
-  --font-display: var(--font-eb-garamond), Georgia, 'Times New Roman', serif;
-  /* Mixed: EB Garamond for Latin/numbers, Sarasa Gothic for CJK */
-  --font-body: var(--font-eb-garamond), var(--font-sarasa-gothic), Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif-cjk: 'Source Han Serif SC', 'Noto Serif SC', SimSun, 'Songti SC', serif;
+  /* EB Garamond (Latin only) → Sarasa Gothic (CJK) → system fallback */
+  --font-body: var(--font-eb-garamond), var(--font-sarasa-gothic), system-ui, sans-serif;
   --font-code: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* ===== Color system (Claude style) ===== */
@@ -103,9 +101,8 @@
 /* Claude design system: serif display + sans body */
 
 @layer utilities {
-  /* Display: serif headlines with negative letter-spacing */
+  /* Display: headlines with negative letter-spacing */
   .text-display-xl {
-    font-family: var(--font-display);
     font-size: 64px;
     font-weight: 400;
     line-height: 1.05;
@@ -113,7 +110,6 @@
   }
 
   .text-display-lg {
-    font-family: var(--font-display);
     font-size: 48px;
     font-weight: 400;
     line-height: 1.1;
@@ -121,7 +117,6 @@
   }
 
   .text-display-md {
-    font-family: var(--font-display);
     font-size: 36px;
     font-weight: 400;
     line-height: 1.15;
@@ -129,7 +124,6 @@
   }
 
   .text-display-sm {
-    font-family: var(--font-display);
     font-size: 28px;
     font-weight: 400;
     line-height: 1.2;

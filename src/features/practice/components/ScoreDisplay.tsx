@@ -32,7 +32,7 @@ export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
     <div className={cn('flex flex-col items-center gap-1', className)}>
       <p className="text-caption-uppercase text-muted">总分</p>
       <p className={cn('leading-none', getScoreColor(score))}>
-        <span className="font-display text-display-lg">{score}</span>
+        <span className="text-display-lg">{score}</span>
         <span className="text-body-md text-muted ml-1.5">/ 100</span>
       </p>
       <p className={cn('text-caption font-medium', getScoreColor(score))}>
