@@ -4,6 +4,7 @@ import {
   AreaChart,
   Area,
   XAxis,
+  YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
@@ -39,7 +40,7 @@ export function ScoreTrendChart({ records, className }: ScoreTrendChartProps) {
     <div className={cn('bg-surface-card border border-hairline rounded-xl p-4', className)}>
       <p className="text-caption-uppercase text-muted mb-4">分数趋势（近 {data.length} 次）</p>
       <ResponsiveContainer width="100%" height={160}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+        <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
           <defs>
             <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
@@ -56,6 +57,14 @@ export function ScoreTrendChart({ records, className }: ScoreTrendChartProps) {
             tick={{ fontSize: 11, fill: 'var(--color-muted)' }}
             axisLine={false}
             tickLine={false}
+          />
+          <YAxis
+            domain={[0, 100]}
+            ticks={[0, 50, 100]}
+            tick={{ fontSize: 11, fill: 'var(--color-muted)' }}
+            axisLine={false}
+            tickLine={false}
+            tickMargin={2}
           />
           <Tooltip
             contentStyle={{

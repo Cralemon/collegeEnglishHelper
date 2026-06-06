@@ -15,6 +15,7 @@ interface FlashCardProps {
 }
 
 const SWIPE_THRESHOLD = 80;
+const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, [role="button"]';
 
 export function FlashCard({
   isFlipped,
@@ -31,9 +32,10 @@ export function FlashCard({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
+      // Skip drag for interactive elements — let click through
+      if ((e.target as HTMLElement).closest(INTERACTIVE_SELECTOR)) return;
       isDragging.current = true;
       startX.current = e.clientX;
-      e.currentTarget.setPointerCapture(e.pointerId);
     },
     [],
   );

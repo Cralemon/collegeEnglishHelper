@@ -314,6 +314,8 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 
 ### Phase 10：Polish + Tauri ⬜
 
+- [ ] 全局禁止文字选中（`user-select: none`）
+- [ ] 移动端禁止手势缩放（`touch-action: manipulation` + viewport meta）
 - [ ] 响应式适配检查
 - [ ] Tauri Android 打包
   - [ ] 状态栏安全区适配（`app.android.safeArea`）
