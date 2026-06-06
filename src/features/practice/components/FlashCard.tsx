@@ -19,8 +19,9 @@ const SWIPE_THRESHOLD = 80;
 /**
  * 3D 翻转卡片容器
  *
- * 高度用 dvh 直接计算：100dvh - 顶部安全间距(3rem) - 底部导航(3rem)
- * 最大 700px。不依赖 flex 高度链。
+ * 始终渲染正反两面，通过 backfaceVisibility + rotateY 控制可见性。
+ * isFlipped=false：rotateY(0)，正面可见。
+ * isFlipped=true：rotateY(180)，背面可见（预旋转 180° + 父 180° = 360° = 正向）。
  */
 export function FlashCard({
   isFlipped,
@@ -49,15 +50,11 @@ export function FlashCard({
     [onSwipeLeft, onSwipeRight],
   );
 
-  const activeContent = isFlipped ? back : front;
-  const animate = isFlipped ? { rotateY: 180 } : { rotateY: 0 };
-
   return (
     <div
       className={cn(
         'relative w-full max-w-[640px] mx-auto max-h-[700px]',
-        /* 100dvh - pt-6(1.5rem) - title+mb-6(3.6rem) - pb-20(5rem) - nav(5.25rem) */
-        'h-[calc(100dvh-15.5rem)]',
+        'h-[calc(100dvh-12rem)]',
         '[perspective:1000px]',
         className,
       )}
@@ -68,7 +65,7 @@ export function FlashCard({
         dragElastic={0.3}
         onDragStart={() => { isDragging.current = true; }}
         onDragEnd={handleDragEnd}
-        animate={animate}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         style={{
           x: dragX,
@@ -78,11 +75,20 @@ export function FlashCard({
         }}
         className="w-full h-full rounded-xl bg-surface-card border border-hairline touch-pan-y"
       >
+        {/* 正面：rotateY(0)，父 rotateY(0) 时可见 */}
         <div
-          className="w-full h-full overflow-y-auto"
+          className="absolute inset-0 w-full h-full overflow-y-auto"
           style={{ backfaceVisibility: 'hidden' }}
         >
-          {activeContent}
+          {front}
+        </div>
+
+        {/* 背面：预旋转 180°，父 rotateY(180) 时 180+180=360° 正向可见 */}
+        <div
+          className="absolute inset-0 w-full h-full overflow-y-auto"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
+          {back}
         </div>
       </motion.div>
     </div>
