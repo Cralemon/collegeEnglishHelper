@@ -677,6 +677,26 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 
 ---
 
+## Phase 6：回顾页 ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 新增内容
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/review/components/StatsOverview.tsx` | 刷题数/平均分/最高最低分（2×4 网格）+ 三维度平均分进度条 |
+| `src/features/review/components/ImprovementList.tsx` | 按 frequency 降序，mastery 彩色进度条（≥80 绿/≥50 黄/<50 红），点击展开关联记录 ID |
+| `src/features/review/components/ScoreTrendChart.tsx` | Recharts 3 AreaChart，最近 20 条，CSS 变量主题色，渐变填充 |
+| `src/app/review/page.tsx` | 无数据空状态 + 有数据三组件组合（ScoreTrendChart 在 ≥3 条时显示） |
+
+### 踩坑
+
+- **recharts 3 Tooltip formatter 类型**：参数类型为 `ValueType | undefined`，不能标注 `number`，去掉类型注解即可通过
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -688,7 +708,8 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 叠卡 + 3D 翻转 + 滑动手势 + 模拟反馈 + v2 迭代 |
 | Phase 5：数据结构重构 | ✅ Agent 完成 | types/mockFeedback/FeedbackPanel/reviewStore 对齐新结构 |
 | Pre Phase 6：首页接口重构 | ✅ Agent 完成 | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
-| Phase 6-10 | 待开始 | — |
+| Phase 6：回顾页 | ✅ Agent 完成 | StatsOverview + ScoreTrendChart + ImprovementList |
+| Phase 7-10 | 待开始 | — |
 
 ---
 
