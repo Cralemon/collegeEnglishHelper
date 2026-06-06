@@ -16,12 +16,6 @@ interface FlashCardProps {
 
 const SWIPE_THRESHOLD = 80;
 
-/**
- * 3D 翻转卡片容器
- *
- * flex-1 填充父级剩余空间，不使用 dvh 固定高度，避免溢出产生滚动条。
- * 始终渲染正反两面，通过 backfaceVisibility + rotateY 控制可见性。
- */
 export function FlashCard({
   isFlipped,
   onFlip,
@@ -53,7 +47,7 @@ export function FlashCard({
     <div
       className={cn(
         'relative w-full max-w-[640px] mx-auto max-h-[700px]',
-        'flex-1 min-h-0 h-[calc(100dvh-13rem)]',
+        'flex-1 min-h-0 h-[calc(100dvh-12rem)]',
         '[perspective:1000px]',
         className,
       )}
