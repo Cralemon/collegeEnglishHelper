@@ -38,7 +38,7 @@ export function BottomNav() {
         className={cn(
           'pointer-events-auto flex items-center justify-around bg-canvas border border-hairline shadow-elevated',
           'mb-4 w-full max-w-5xl mx-4 p-1.5 gap-1.5',
-          'md:w-[72px] md:mx-0 md:mb-0 md:flex-col md:p-2 md:gap-1',
+          'md:w-[72px] md:mx-0 md:mb-0 md:flex-col md:gap-1',
         )}
         style={{ borderRadius: `${radius}px` }}
       >
