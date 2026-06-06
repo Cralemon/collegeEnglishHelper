@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { fontVariables } from '@/styles/fonts';
 import { ThemeScript } from '@/components/ThemeScript';
 import { AppLayout } from '@/components/layout';
+import { ToastProvider } from '@/components/ui';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -20,9 +21,11 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className="h-full flex flex-col font-body bg-canvas text-ink">
-        <AppLayout>
-          {children}
-        </AppLayout>
+        <ToastProvider>
+          <AppLayout>
+            {children}
+          </AppLayout>
+        </ToastProvider>
       </body>
     </html>
   );

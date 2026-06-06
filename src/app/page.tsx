@@ -9,6 +9,7 @@ import {
   CardBack,
   EmptyState,
 } from '@/features/practice/components';
+import { useToast } from '@/components/ui';
 import { evaluateTranslation, generateQuestions, LLMError } from '@/features/practice/services/llmClient';
 import { generateMockFeedback, computeTotalScore } from '@/features/practice/services/mockFeedback';
 import { mockGenerateQuestions } from '@/features/practice/services/mockGenerateQuestions';
@@ -31,6 +32,7 @@ export default function HomePage() {
     answerRecords,
   } = usePracticeStore();
   const { userProfile, llmConfig } = useSettingsStore();
+  const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const currentQuestion = questions[currentIndex];
@@ -53,11 +55,15 @@ export default function HomePage() {
         existingTexts: questions.map((q) => q.sourceText),
       });
     } catch (err) {
-      // LLM 失败时降级到 mock 数据
       if (err instanceof LLMError) {
-        console.warn(`[LLM] 题目生成失败 (${err.code})，使用 mock 数据：${err.message}`);
+        if (err.code === 'NO_API_KEY') {
+          toast('请先在设置中配置 API Key', 'error');
+          setIsGenerating(false);
+          return;
+        }
+        toast(`题目生成失败，已使用本地数据：${err.message}`, 'warning');
       } else {
-        console.warn('[LLM] 题目生成未知错误，使用 mock 数据：', err);
+        toast('题目生成失败，已使用本地数据', 'warning');
       }
       newQuestions = mockGenerateQuestions(userProfile, 10);
     }
@@ -66,7 +72,7 @@ export default function HomePage() {
       setQuestions(newQuestions);
     }
     setIsGenerating(false);
-  }, [userProfile, llmConfig, questions, setQuestions]);
+  }, [userProfile, llmConfig, questions, setQuestions, toast]);
 
   const handleSubmit = useCallback(async () => {
     if (!draft.trim() || !currentQuestion) return;
@@ -83,11 +89,15 @@ export default function HomePage() {
         vocabularyLevel: userProfile.vocabularyLevel,
       });
     } catch (err) {
-      // LLM 失败时降级到 mock 数据
       if (err instanceof LLMError) {
-        console.warn(`[LLM] 翻译评估失败 (${err.code})，使用 mock 数据：${err.message}`);
+        if (err.code === 'NO_API_KEY') {
+          toast('请先在设置中配置 API Key', 'error');
+          setEvaluating(false);
+          return;
+        }
+        toast(`翻译评估失败，已使用本地数据：${err.message}`, 'warning');
       } else {
-        console.warn('[LLM] 翻译评估未知错误，使用 mock 数据：', err);
+        toast('翻译评估失败，已使用本地数据', 'warning');
       }
       feedback = generateMockFeedback(
         currentQuestion.sourceText,
@@ -109,7 +119,7 @@ export default function HomePage() {
 
     submitAnswer(record);
     setEvaluating(false);
-  }, [draft, currentQuestion, userProfile.translationDirection, userProfile.gradeLevel, userProfile.vocabularyLevel, llmConfig, submitAnswer, setEvaluating]);
+  }, [draft, currentQuestion, userProfile.translationDirection, userProfile.gradeLevel, userProfile.vocabularyLevel, llmConfig, submitAnswer, setEvaluating, toast]);
 
   if (questions.length === 0) {
     return (

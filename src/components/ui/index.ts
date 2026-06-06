@@ -31,3 +31,6 @@ export {
   DialogFooter,
 } from './Dialog';
 export type { DialogProps } from './Dialog';
+
+export { ToastProvider, useToast } from './Toast';
+export type { ToastType } from './Toast';
