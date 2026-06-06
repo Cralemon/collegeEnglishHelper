@@ -294,16 +294,16 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] 数据管理：清除练习数据
 - [ ] 用户画像展示：weakCategories、recentTrend（Phase 9）
 
-### Pre Phase 8：LLM 提示词设计 ⬜
+### Pre Phase 8：LLM 提示词设计 ✅
 
 **目标**：梳理 LLM 接入点，为每个接入点设计 System Prompt + User Prompt
 
-- [ ] 接入点 1 — 翻译反馈评估：评估学生翻译，输出 AIFeedback JSON
-- [ ] 接入点 2 — 题目生成：基于用户画像生成个性化翻译练习题
-- [ ] 创建 `src/features/practice/services/prompts.ts`
-- [ ] 占位符参数化：`buildFeedbackPrompt(params)` + `buildQuestionGenerationPrompt(params)`
+- [x] 接入点 1 — 翻译反馈评估：评估学生翻译，输出 AIFeedback JSON
+- [x] 接入点 2 — 题目生成：基于用户画像生成个性化翻译练习题
+- [x] 创建 `src/features/practice/services/prompts.ts`
+- [x] 占位符参数化：`buildFeedbackPrompt(params)` + `buildQuestionGenerationPrompt(params)`
 
-> 详细提示词设计见 `HANDOFF.md` Pre Phase 8 章节。
+> 详细提示词设计见 `HANDOFF.md` Pre Phase 8 章节。实现代码见 `src/features/practice/services/prompts.ts`。
 
 ### Phase 8：LLM 集成 ⬜
 
@@ -373,3 +373,4 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 | v2.3 | 2026/06/06 | Pre Phase 6 + Phase 6 + Polish：首页接口重构、回顾页完整 UI、ScrollFade、卡片高度、展开动画 |
 | v2.4 | 2026/06/06 | Phase 7：设置页完整功能（UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection） |
 | v2.5 | 2026/06/07 | Pre Phase 8：LLM 接入点梳理 + 提示词设计（翻译反馈 + 题目生成两个 System/User Prompt） |
+| v2.6 | 2026/06/07 | Pre Phase 8 落地：prompts.ts 实现 + 条件块机制 + 学年段自适应评分/难度 |

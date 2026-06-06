@@ -17,7 +17,7 @@
 | Pre Phase 6：首页接口重构 | ✅ | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6：回顾页 | ✅ | StatsOverview + ScoreTrendChart + ImprovementList |
 | Phase 7：设置页 | ✅ | 用户信息 + 应用配置 |
-| **Pre Phase 8：LLM 提示词设计** | ⬜ **下一步** | 梳理 LLM 接入点 + 设计提示词 |
+| Pre Phase 8：LLM 提示词设计 | ✅ | prompts.ts 已创建，两个 Prompt Builder 函数就绪 |
 | Phase 8：LLM 集成 | ⬜ | 替换 mock 数据 |
 | Phase 9：学习闭环 | ⬜ | 用户画像 + 智能出题 |
 | Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |/cl 
@@ -328,22 +328,69 @@ keyPoints：选取 2-4 个关键短语或语法点，评价翻译质量（优秀
 
 ---
 
-## 下一步：Pre Phase 8 — 提示词文件落地
+## Pre Phase 8 实现摘要
+
+### 新增文件
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/practice/services/prompts.ts` | 两个 Prompt Builder 函数 + 参数类型 + 条件块处理工具 |
+
+### 核心函数
+
+```typescript
+// 接入点 1 — 翻译反馈
+buildFeedbackPrompt(params: FeedbackPromptParams): PromptPair
+  // params: { sourceText, userTranslation, direction, gradeLevel, vocabularyLevel, weakCategories? }
+  // returns: { systemPrompt, userPrompt }
+
+// 接入点 2 — 题目生成
+buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPair
+  // params: { direction, gradeLevel, vocabularyLevel, presetTopics, customTopics, count, weakCategories?, existingTexts? }
+  // returns: { systemPrompt, userPrompt }
+```
+
+### 关键决策
+
+1. **参数化设计**：所有占位符通过参数对象传入，不依赖 store，方便测试和复用
+2. **条件块机制**：`{{#key}}...{{/key}}` Handlebars 风格，`weakCategories` 和 `existingTexts` 可选时自动移除整块
+3. **学年段自适应**：评分标准（大一大二宽松 → 研究生严格）和难度分布（easy:medium:hard 比例）根据 `gradeLevel` 动态生成
+4. **主题标签中文化**：`PresetTopic` enum → 中文标签自动映射
+
+---
+
+## 下一步：Phase 8 — LLM 集成
+
+### 背景
+
+Pre Phase 8 已完成提示词设计 + 代码落地。Phase 8 将替换 mock 数据，接入真实 LLM。
+
+### 需要修改的文件
+
+| 文件 | 当前状态 | 目标 |
+|------|---------|------|
+| `src/app/page.tsx` | 调用 `generateMockFeedback` / `mockGenerateQuestions` | 调用 LLM（通过 `llmClient`） |
+| `src/features/practice/services/` | 仅有 mock + prompts | 新增 `llmClient.ts`（调用 LLM + 解析响应） |
 
 ### 具体任务
 
-**Step Pre8.1：创建提示词模块**
-- 新建 `src/features/practice/services/prompts.ts`
-- 实现 `buildFeedbackPrompt()` — 构建翻译反馈 System + User Prompt
-- 实现 `buildQuestionGenerationPrompt()` — 构建题目生成 System + User Prompt
-- 所有占位符通过参数传入，返回 `{ systemPrompt: string, userPrompt: string }`
+**Step 8.1：创建 LLM 客户端**
+- 新建 `src/features/practice/services/llmClient.ts`
+- 使用 fetch 调用 OpenAI 兼容 API
+- 实现 `evaluateTranslation()` → 调用 `buildFeedbackPrompt()` + LLM → 返回 `AIFeedback`
+- 实现 `generateQuestions()` → 调用 `buildQuestionGenerationPrompt()` + LLM → 返回 `Question[]`
+- JSON 解析 + try/catch，失败时 fallback 到 mock 数据
+
+**Step 8.2：集成到 page.tsx**
+- `handleSubmit`：`generateMockFeedback()` → `evaluateTranslation()`
+- `handleGenerate`：`mockGenerateQuestions()` → `generateQuestions()`
+
+**Step 8.3：错误处理**
+- 网络错误 / API Key 未配置 → 使用 mock fallback
+- LLM 返回格式异常 → JSON 校验 + 重试 1 次
 
 ### 验收标准
 
 1. `pnpm run build` 无类型错误
-2. 两个 prompt builder 函数正确填充所有占位符
-3. 输出格式符合 FINAL_PLAN §5.1 数据结构
-
----
-
-*Pre Phase 8 提示词已设计（2026-06-07）。完成后开始 Phase 8 编码。*
+2. 配置 API Key 后能正常调用 LLM 获取反馈
+3. 无 API Key 时自动降级到 mock 数据

@@ -711,6 +711,7 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | Phase 6：回顾页 | ✅ Agent 完成 | StatsOverview + ScoreTrendChart + ImprovementList |
 | Phase 6 Polish | ✅ Agent 完成 | ScrollFade 双端渐隐 + 卡片高度 + 数字放大 + 展开动画 |
 | **Phase 7：设置页** | ✅ Agent 完成 | UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection |
+| **Pre Phase 8：LLM 提示词设计** | ✅ Agent 完成 | 2 个接入点梳理 + prompts.ts 落地 |
 | Phase 8-10 | 待开始 | — |
 
 ---
@@ -778,6 +779,55 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 
 - **flex 子元素中 h-[calc(...)] 不生效**：`flex-1` 让高度由父容器弹性分配，`h-[calc(...)]` 只在高度比弹性分配结果小时才起约束作用。要让卡片在弹性布局中矮一点，应在元素上加 `mb-*` 从分配空间中扣减，而非设置一个通常被覆盖的固定高度。
 - **grid 高度动画**：`grid-template-rows: 0fr → 1fr` + 内层 `overflow-hidden` 是纯 CSS 实现任意高度折叠动画的标准方案，无需 JS 测量。
+
+---
+
+## Pre Phase 8：LLM 提示词设计 ✅
+
+**执行者**：Agent
+**日期**：2026-06-07
+
+### 目标
+
+梳理项目中 LLM 接入点，为每个接入点设计 System Prompt + User Prompt，并落地为可复用的函数。
+
+### LLM 接入点全景
+
+| # | 接入点 | 当前 mock | 调用位置 | 触发时机 |
+|---|--------|----------|---------|---------|
+| 1 | 翻译反馈评估 | `mockFeedback.ts` | `page.tsx` → `handleSubmit` | 用户提交翻译后 |
+| 2 | 题目生成 | `mockGenerateQuestions.ts` | `page.tsx` → `handleGenerate` | 空状态 / 最后一题"生成下一组" |
+
+### 新增内容
+
+| 文件 | 说明 |
+|------|------|
+| `src/features/practice/services/prompts.ts` | 两个 Prompt Builder 函数 + 参数类型 + 占位符/条件块处理 |
+
+### 核心函数
+
+```typescript
+// 接入点 1 — 翻译反馈评估
+buildFeedbackPrompt(params: FeedbackPromptParams): PromptPair
+// params: { sourceText, userTranslation, direction, gradeLevel, vocabularyLevel, weakCategories? }
+
+// 接入点 2 — 题目生成
+buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPair
+// params: { direction, gradeLevel, vocabularyLevel, presetTopics, customTopics, count, weakCategories?, existingTexts? }
+```
+
+### 关键设计决策
+
+1. **参数化设计**：所有占位符通过参数对象传入，函数为纯函数，不依赖 store，方便测试和复用
+2. **条件块机制**：`{{#key}}...{{/key}}` Handlebars 风格，`weakCategories` 和 `existingTexts` 为可选参数时自动移除整块内容
+3. **学年段自适应评分**：`getScoringStandard()` 根据 gradeLevel 动态生成评分标准说明（大一大二宽松 → 研究生严格）
+4. **学年段自适应难度**：`getDifficultyDistribution()` 返回 easy:medium:hard 比例（大一 4:4:2 → 研究生 1:4:5）
+5. **主题标签中文化**：`PresetTopic` enum 值自动映射为中文标签（如 `'red-theme'` → `'红色主题'`）
+6. **纯字符串操作**：`fill()` 函数做 `{{key}}` 替换，不引入 Handlebars 等模板引擎依赖
+
+### 构建验证
+
+`pnpm run build` 通过，零类型错误。
 
 ---
 
