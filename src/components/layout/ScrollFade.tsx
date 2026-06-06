@@ -35,7 +35,7 @@ export function ScrollFade({ children, className }: ScrollFadeProps) {
 
   return (
     <div className={cn('relative flex-1 min-h-0', className)}>
-      <div ref={ref} className="h-full overflow-y-auto">
+      <div ref={ref} className="h-full overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {children}
       </div>
 

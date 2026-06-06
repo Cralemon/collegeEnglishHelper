@@ -212,30 +212,24 @@ body {
   line-height: 1.55;
 }
 
-/* ===== Scrollbar (Windows WebView — thin, no arrows) ===== */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-muted-soft) transparent;
+/* ===== Scrollbar (no layout space) ===== */
+.overflow-y-auto,
+.overflow-x-auto {
+  overflow-y: overlay;
+  overflow-x: overlay;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background-color: var(--color-muted-soft);
-  border-radius: 3px;
-}
-
-*::-webkit-scrollbar-button {
-  display: none;
-}
-
-*::-webkit-scrollbar-corner {
-  background: transparent;
+/* Recharts SVG — suppress focus outline */
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-tooltip-wrapper:focus {
+  outline: none;
 }

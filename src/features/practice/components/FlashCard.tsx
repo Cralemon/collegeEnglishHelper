@@ -1,7 +1,7 @@
 'use client';
 
-import { type ReactNode, useCallback, useRef } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 
 interface FlashCardProps {
@@ -25,22 +25,40 @@ export function FlashCard({
   onSwipeRight,
   className,
 }: FlashCardProps) {
-  const dragX = useMotionValue(0);
-  const cardOpacity = useTransform(dragX, [-300, -100, 0, 100, 300], [0.3, 1, 1, 1, 0.3]);
-  const cardRotate = useTransform(dragX, [-300, 0, 300], [-6, 0, 6]);
+  const [dragX, setDragX] = useState(0);
   const isDragging = useRef(false);
+  const startX = useRef(0);
 
-  const handleDragEnd = useCallback(
-    (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      isDragging.current = true;
+      startX.current = e.clientX;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    [],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging.current) return;
+      const dx = e.clientX - startX.current;
+      setDragX(dx);
+    },
+    [],
+  );
+
+  const handlePointerUp = useCallback(
+    () => {
+      if (!isDragging.current) return;
       isDragging.current = false;
-      const { offset, velocity } = info;
-      if (offset.x < -SWIPE_THRESHOLD || velocity.x < -500) {
+      if (dragX < -SWIPE_THRESHOLD) {
         onSwipeLeft?.();
-      } else if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) {
+      } else if (dragX > SWIPE_THRESHOLD) {
         onSwipeRight?.();
       }
+      setDragX(0);
     },
-    [onSwipeLeft, onSwipeRight],
+    [dragX, onSwipeLeft, onSwipeRight],
   );
 
   return (
@@ -53,17 +71,17 @@ export function FlashCard({
       )}
     >
       <motion.div
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.3}
-        onDragStart={() => { isDragging.current = true; }}
-        onDragEnd={handleDragEnd}
+        drag={false}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         style={{
           x: dragX,
-          opacity: cardOpacity,
-          rotateZ: cardRotate,
+          rotateZ: dragX * 0.02,
+          opacity: Math.max(0.3, 1 - Math.abs(dragX) / 300),
           transformStyle: 'preserve-3d',
         }}
         className="w-full h-full rounded-xl bg-surface-card border border-hairline touch-pan-y"
