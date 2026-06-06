@@ -39,8 +39,8 @@ export function EmptyState({
       </CardContent>
 
       <CardFooter className="flex-col sm:flex-row gap-3 pt-2">
-        <Link href="/settings" className="flex-1 w-full sm:w-auto">
-          <Button variant="secondary" size="md" className="w-full">
+        <Link href="/settings" className="flex-1 w-full sm:w-auto flex">
+          <Button variant="secondary" size="md" className="flex-1">
             前往设置
           </Button>
         </Link>

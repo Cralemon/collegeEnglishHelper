@@ -19,7 +19,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className="min-h-full flex flex-col font-body bg-canvas text-ink">
+      <body className="h-full flex flex-col font-body bg-canvas text-ink">
         <AppLayout>
           {children}
         </AppLayout>
