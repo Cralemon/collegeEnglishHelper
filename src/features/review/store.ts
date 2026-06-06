@@ -2,7 +2,12 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AnswerRecord, ImprovementPoint, FeedbackDimension } from '@/types';
+import type {
+  AnswerRecord,
+  FeedbackDimension,
+  ImprovementPoint,
+  IssueCategory,
+} from '@/types';
 import { STORAGE_KEYS } from '@/services/storage';
 
 // ============================================================
@@ -10,73 +15,97 @@ import { STORAGE_KEYS } from '@/services/storage';
 // ============================================================
 
 interface ReviewState {
-  /** 改进点列表（从 AI 反馈中提取，按频率统计） */
+  /** 改进点列表（从 AI 反馈 issues 中按 IssueCategory 聚合） */
   improvementPoints: ImprovementPoint[];
 }
 
 interface ReviewActions {
-  /**
-   * 从作答记录中提取改进点并更新统计
-   * 对同一条改进点出现多次时 frequency +1
-   */
+  /** 从作答记录中提取改进点并更新统计 */
   extractImprovements: (records: AnswerRecord[]) => void;
+  /** 更新指定改进点的掌握度 */
+  updateMastery: (pointId: string, isOccurred: boolean) => void;
   /** 清空改进点 */
   clearImprovements: () => void;
 }
 
 // ============================================================
-// 辅助函数：从反馈中提取改进点
+// 辅助函数：category → dimension 映射
 // ============================================================
 
 const DIMENSIONS: FeedbackDimension[] = ['grammar', 'vocabulary', 'sentenceStructure'];
 
-/**
- * 生成改进点的唯一键（用于去重）
- */
-function improvementKey(dimension: FeedbackDimension, content: string): string {
-  return `${dimension}:${content.trim().toLowerCase()}`;
+function categoryToDimension(category: IssueCategory): FeedbackDimension {
+  if (category.startsWith('grammar.')) return 'grammar';
+  if (category.startsWith('vocab.')) return 'vocabulary';
+  return 'sentenceStructure';
 }
 
+// category 的中文描述（用于 description 字段）
+const categoryDescription: Record<IssueCategory, string> = {
+  'grammar.tense': '时态使用',
+  'grammar.voice': '语态（主动/被动）',
+  'grammar.agreement': '主谓一致',
+  'grammar.article': '冠词使用',
+  'grammar.preposition': '介词搭配',
+  'grammar.clause': '从句结构',
+  'grammar.subjunctive': '虚拟语气',
+  'grammar.word-order': '语序',
+  'vocab.accuracy': '词义准确性',
+  'vocab.collocation': '词汇搭配',
+  'vocab.formality': '语体正式度',
+  'vocab.diversity': '词汇多样性',
+  'structure.choppy': '句子碎片化',
+  'structure.run-on': '句子过长',
+  'structure.parallelism': '并列结构一致性',
+  'structure.coherence': '段落连贯性',
+};
+
+// ============================================================
+// 辅助函数：从反馈中提取改进点
+// ============================================================
+
 /**
- * 从作答记录中提取所有改进点，合并去重并统计频率
+ * 从作答记录中提取所有 issues，按 IssueCategory 聚合为 ImprovementPoint
  */
 function extractFromRecords(records: AnswerRecord[]): ImprovementPoint[] {
-  const now = Date.now();
-  const pointMap = new Map<string, ImprovementPoint>();
+  const pointMap = new Map<IssueCategory, ImprovementPoint>();
 
   for (const record of records) {
-    const { feedback, questionId, answeredAt } = record;
+    const { feedback, id: recordId, answeredAt } = record;
 
     for (const dimension of DIMENSIONS) {
       const dimFeedback = feedback[dimension];
-      if (!dimFeedback?.improvements) continue;
+      if (!dimFeedback?.issues) continue;
 
-      for (const content of dimFeedback.improvements) {
-        const key = improvementKey(dimension, content);
-        const existing = pointMap.get(key);
+      for (const issue of dimFeedback.issues) {
+        const { category } = issue;
+        const existing = pointMap.get(category);
 
         if (existing) {
           existing.frequency += 1;
           existing.lastSeen = Math.max(existing.lastSeen, answeredAt);
-          if (!existing.relatedQuestionIds.includes(questionId)) {
-            existing.relatedQuestionIds.push(questionId);
+          if (!existing.recentIssueIds.includes(recordId)) {
+            existing.recentIssueIds.push(recordId);
           }
+          // 出现时掌握度 -10
+          existing.mastery = Math.max(0, existing.mastery - 10);
         } else {
-          pointMap.set(key, {
-            id: key,
-            dimension,
-            content,
+          pointMap.set(category, {
+            id: category,
+            category,
+            dimension: categoryToDimension(category),
+            description: categoryDescription[category],
             frequency: 1,
-            relatedQuestionIds: [questionId],
+            recentIssueIds: [recordId],
             firstSeen: answeredAt,
             lastSeen: answeredAt,
+            mastery: 50, // 初始掌握度
           });
         }
       }
     }
   }
 
-  // 按频率降序排列
   return Array.from(pointMap.values()).sort((a, b) => b.frequency - a.frequency);
 }
 
@@ -100,6 +129,18 @@ export const useReviewStore = create<ReviewState & ReviewActions>()(
       extractImprovements: (records) => {
         const points = extractFromRecords(records);
         set({ improvementPoints: points });
+      },
+
+      updateMastery: (pointId, isOccurred) => {
+        set((state) => ({
+          improvementPoints: state.improvementPoints.map((p) => {
+            if (p.id !== pointId) return p;
+            const mastery = isOccurred
+              ? Math.max(0, p.mastery - 10)
+              : Math.min(100, p.mastery + 5);
+            return { ...p, mastery };
+          }),
+        }));
       },
 
       clearImprovements: () => set({ improvementPoints: [] }),
@@ -134,9 +175,6 @@ export interface PracticeStatistics {
 
 /**
  * 从作答记录计算统计信息
- *
- * @param records - 作答记录列表
- * @returns 统计信息对象
  */
 export function computeStatistics(records: AnswerRecord[]): PracticeStatistics {
   if (records.length === 0) {
@@ -156,7 +194,6 @@ export function computeStatistics(records: AnswerRecord[]): PracticeStatistics {
   const maxScore = Math.max(...scores);
   const minScore = Math.min(...scores);
 
-  // 分数分布：0-9, 10-19, ..., 90-100
   const distribution = Array.from({ length: 11 }, (_, i) => {
     const min = i * 10;
     const max = i === 10 ? 100 : min + 9;
@@ -164,11 +201,8 @@ export function computeStatistics(records: AnswerRecord[]): PracticeStatistics {
     return { range: `${min}-${max}`, count };
   });
 
-  // 弱势题目（< 50 分）
   const weakQuestionIds = [
-    ...new Set(
-      records.filter((r) => r.score < 50).map((r) => r.questionId),
-    ),
+    ...new Set(records.filter((r) => r.score < 50).map((r) => r.questionId)),
   ];
 
   return {

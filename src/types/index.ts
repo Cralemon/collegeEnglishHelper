@@ -28,14 +28,68 @@ export interface Question {
 // AI 反馈
 // ============================================================
 
+/** 问题严重程度 */
+export type IssueSeverity = 'error' | 'warning' | 'suggestion';
+
+/** 标准化问题分类（用于改进点聚合） */
+export type IssueCategory =
+  | 'grammar.tense'
+  | 'grammar.voice'
+  | 'grammar.agreement'
+  | 'grammar.article'
+  | 'grammar.preposition'
+  | 'grammar.clause'
+  | 'grammar.subjunctive'
+  | 'grammar.word-order'
+  | 'vocab.accuracy'
+  | 'vocab.collocation'
+  | 'vocab.formality'
+  | 'vocab.diversity'
+  | 'structure.choppy'
+  | 'structure.run-on'
+  | 'structure.parallelism'
+  | 'structure.coherence';
+
+/** 具体问题（挂在维度下） */
+export interface Issue {
+  /** 用户原文片段 */
+  userFragment: string;
+  /** 建议修改 */
+  suggestedFix: string;
+  /** 原因说明 */
+  reason: string;
+  severity: IssueSeverity;
+  category: IssueCategory;
+}
+
+/** 关键词处理评估 */
+export interface KeyPointHandling {
+  originalFragment: string;
+  userTranslation: string;
+  evaluation: '优秀' | '合格' | '待改进';
+  alternativeSuggestion?: string;
+}
+
+/** 翻译策略分析 */
+export interface TranslationStrategy {
+  approach: '直译为主' | '意译为主' | '直译意译结合';
+  strengths: string[];
+  suggestions: string[];
+  keyPoints: KeyPointHandling[];
+}
+
 /** 单维度反馈（语法/词汇/句型） */
 export interface DimensionFeedback {
   /** 维度分数 0-100 */
   score: number;
   /** 优点列表 */
   strengths: string[];
-  /** 改进点列表 */
+  /** 改进点概述 */
   improvements: string[];
+  /** 具体问题列表 */
+  issues: Issue[];
+  /** 学习技巧（可选） */
+  tips?: string[];
 }
 
 /** AI 三维评估反馈 */
@@ -43,8 +97,9 @@ export interface AIFeedback {
   grammar: DimensionFeedback;
   vocabulary: DimensionFeedback;
   sentenceStructure: DimensionFeedback;
-  /** 总结评语 */
-  summary: string;
+  translationStrategy: TranslationStrategy;
+  /** 整体学习建议 */
+  overallSuggestion: string[];
 }
 
 // ============================================================
@@ -91,20 +146,18 @@ export type ThemePreference = 'light' | 'dark' | 'system';
 
 /** 预设题目类型 */
 export type PresetTopic =
-  | 'red-theme'       // 红色主题（革命、爱国）
-  | 'political'       // 政治
-  | 'motivational'    // 励志
-  | 'technology'      // 科技
-  | 'culture'         // 文化
-  | 'daily-life'      // 日常生活
-  | 'business'        // 商务
-  | 'academic';       // 学术
+  | 'red-theme'
+  | 'political'
+  | 'motivational'
+  | 'technology'
+  | 'culture'
+  | 'daily-life'
+  | 'business'
+  | 'academic';
 
 /** 题目偏好配置 */
 export interface TopicPreference {
-  /** 选中的预设类型 */
   presetTopics: PresetTopic[];
-  /** 自定义偏好描述（自由文本） */
   customTopics: string;
 }
 
@@ -116,7 +169,6 @@ export interface UserProfile {
   translationMode: TranslationMode;
   translationDirection: TranslationDirection;
   theme: ThemePreference;
-  /** 题目偏好 */
   topicPreference: TopicPreference;
 }
 
@@ -138,13 +190,42 @@ export interface LLMConfig {
 /** 反馈维度（用于改进点分类） */
 export type FeedbackDimension = 'grammar' | 'vocabulary' | 'sentenceStructure';
 
-/** 改进点（从 AI 反馈中提取，按频率统计） */
+/** 改进点（从 AI 反馈中提取，按 IssueCategory 聚合） */
 export interface ImprovementPoint {
   id: string;
+  category: IssueCategory;
   dimension: FeedbackDimension;
-  content: string;
+  description: string;
   frequency: number;
-  relatedQuestionIds: string[];
+  recentIssueIds: string[];
   firstSeen: number;
   lastSeen: number;
+  /** 掌握度 0-100，出现时 -10，连续未出现时 +5 */
+  mastery: number;
+}
+
+// ============================================================
+// 用户学习数据
+// ============================================================
+
+/** 薄弱分类详情 */
+export interface WeakCategory {
+  category: IssueCategory;
+  frequency: number;
+  mastery: number;
+  suggestedFocus: string;
+}
+
+/** 用户学习数据（用于个性化出题） */
+export interface LearningData {
+  totalQuestions: number;
+  averageScore: number;
+  dimensionScores: {
+    grammar: number;
+    vocabulary: number;
+    sentenceStructure: number;
+  };
+  weakCategories: WeakCategory[];
+  strongCategories: IssueCategory[];
+  recentTrend: 'improving' | 'stable' | 'declining';
 }
