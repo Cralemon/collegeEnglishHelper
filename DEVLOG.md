@@ -487,6 +487,35 @@ npx tauri android build --apk
 - 数据模型更新
 - Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher
 
+## CSS spacing 命名冲突修复
+
+### 问题
+
+在 Tailwind CSS 4 的 `@theme` 块中定义 `--spacing-sm: 12px` 会覆盖 Tailwind 内部的 spacing token。`max-w-sm` 映射到 `max-width: var(--spacing-sm)`，原本应为 `24rem`，但被覆盖为 `12px`，导致文字容器宽度极小。
+
+### 修复
+
+将自定义 spacing 变量重命名为 `--space-*` 前缀，避免与 Tailwind 内部 `--spacing-*` 冲突。
+
+## 题目偏好与生成
+
+### 新增功能
+
+- **题目偏好配置**：用户可在设置中选择预设题目类型（红色主题、政治、励志、科技、文化、日常、商务、学术）或输入自定义偏好
+- **题目生成**：无题目时，首页显示卡片式空状态 + 两个按钮（前往设置、生成题目）
+- **模拟生成**：`mockGenerateQuestions` 根据用户画像（学年段、翻译方向、题目偏好）生成 10 道模拟题目
+- **数据模型**：`UserProfile` 新增 `topicPreference: TopicPreference` 字段
+
+### 数据模型
+
+```typescript
+type PresetTopic = 'red-theme' | 'political' | 'motivational' | 'technology' | 'culture' | 'daily-life' | 'business' | 'academic';
+interface TopicPreference {
+  presetTopics: PresetTopic[];
+  customTopics: string;
+}
+```
+
 ---
 
 ## 当前进度

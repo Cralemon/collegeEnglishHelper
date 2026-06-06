@@ -89,6 +89,25 @@ export type TranslationMode = 'single' | 'paragraph';
 /** 主题偏好 */
 export type ThemePreference = 'light' | 'dark' | 'system';
 
+/** 预设题目类型 */
+export type PresetTopic =
+  | 'red-theme'       // 红色主题（革命、爱国）
+  | 'political'       // 政治
+  | 'motivational'    // 励志
+  | 'technology'      // 科技
+  | 'culture'         // 文化
+  | 'daily-life'      // 日常生活
+  | 'business'        // 商务
+  | 'academic';       // 学术
+
+/** 题目偏好配置 */
+export interface TopicPreference {
+  /** 选中的预设类型 */
+  presetTopics: PresetTopic[];
+  /** 自定义偏好描述（自由文本） */
+  customTopics: string;
+}
+
 /** 用户个人信息与偏好 */
 export interface UserProfile {
   nickname: string;
@@ -97,6 +116,8 @@ export interface UserProfile {
   translationMode: TranslationMode;
   translationDirection: TranslationDirection;
   theme: ThemePreference;
+  /** 题目偏好 */
+  topicPreference: TopicPreference;
 }
 
 // ============================================================

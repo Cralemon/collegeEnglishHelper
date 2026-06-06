@@ -10,6 +10,8 @@ import type {
   TranslationMode,
   TranslationDirection,
   ThemePreference,
+  TopicPreference,
+  PresetTopic,
 } from '@/types';
 import { STORAGE_KEYS } from '@/services/storage';
 
@@ -24,6 +26,10 @@ const defaultUserProfile: UserProfile = {
   translationMode: 'single',
   translationDirection: 'zh-en',
   theme: 'system',
+  topicPreference: {
+    presetTopics: [],
+    customTopics: '',
+  },
 };
 
 const defaultLLMConfig: LLMConfig = {
@@ -57,6 +63,10 @@ interface SettingsActions {
   setTranslationMode: (mode: TranslationMode) => void;
   setTranslationDirection: (direction: TranslationDirection) => void;
   setTheme: (theme: ThemePreference) => void;
+
+  // --- 题目偏好 ---
+  togglePresetTopic: (topic: PresetTopic) => void;
+  setCustomTopics: (text: string) => void;
 
   // --- LLM 配置 ---
   setLLMConfig: (config: Partial<LLMConfig>) => void;
@@ -118,6 +128,29 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       setTheme: (theme) =>
         set((state) => ({
           userProfile: { ...state.userProfile, theme },
+        })),
+
+      // --- 题目偏好 ---
+      togglePresetTopic: (topic) =>
+        set((state) => {
+          const current = state.userProfile.topicPreference.presetTopics;
+          const next = current.includes(topic)
+            ? current.filter((t) => t !== topic)
+            : [...current, topic];
+          return {
+            userProfile: {
+              ...state.userProfile,
+              topicPreference: { ...state.userProfile.topicPreference, presetTopics: next },
+            },
+          };
+        }),
+
+      setCustomTopics: (text) =>
+        set((state) => ({
+          userProfile: {
+            ...state.userProfile,
+            topicPreference: { ...state.userProfile.topicPreference, customTopics: text },
+          },
         })),
 
       // --- LLM 配置 ---

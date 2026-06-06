@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.15 | 2026-06-06 | Step 5 完成
+> v3.16 | 2026-06-06 | 题目偏好 + 生成题目 + CSS spacing 修复
 
 ---
 
@@ -157,6 +157,7 @@
 | 用户信息 | P0 | 昵称、学年段（大一~研三）、词汇量 |
 | 翻译偏好 | P0 | 单句/段落、中译英/英译中 |
 | LLM 配置 | P0 | API 地址、Key、模型选择、连接测试 |
+| 题目偏好 | P1 | 预设类型（红色主题/政治/励志/科技/文化/日常/商务/学术）+ 自定义偏好文本 |
 | 主题风格 | P1 | Claude（默认）/ 微软 / 谷歌 / iOS，四套 UI 风格切换 |
 | 外观模式 | P1 | 浅色/深色/跟随系统，与主题风格独立叠加 |
 | 水平测试 | P2 | 评估英语水平的简短测试 |
@@ -346,10 +347,10 @@ export const fontVariables = `${ebGaramond.variable} ${sarasaGothic.variable}`;
 
 ```css
 :root {
-  --spacing-xxs: 4px;   --spacing-xs: 8px;
-  --spacing-sm: 12px;    --spacing-md: 16px;
-  --spacing-lg: 24px;    --spacing-xl: 32px;
-  --spacing-xxl: 48px;   --spacing-section: 96px;
+  --space-xxs: 4px;   --space-xs: 8px;
+  --space-sm: 12px;    --space-md: 16px;
+  --space-lg: 24px;    --space-xl: 32px;
+  --space-xxl: 48px;   --space-section: 96px;
 
   --rounded-xs: 4px;     --rounded-sm: 6px;
   --rounded-md: 8px;     --rounded-lg: 12px;
@@ -458,6 +459,15 @@ interface UserProfile {
   themeStyle: 'claude' | 'microsoft' | 'google' | 'ios';
   /** 外观模式：浅色/深色/跟随系统，与主题风格独立叠加 */
   colorScheme: 'light' | 'dark' | 'system';
+  /** 题目偏好 */
+  topicPreference: TopicPreference;
+}
+
+// 题目偏好
+type PresetTopic = 'red-theme' | 'political' | 'motivational' | 'technology' | 'culture' | 'daily-life' | 'business' | 'academic';
+interface TopicPreference {
+  presetTopics: PresetTopic[];    // 选中的预设类型
+  customTopics: string;           // 自定义偏好描述
 }
 
 // LLM 配置
@@ -909,3 +919,4 @@ git push origin develop --tags
 | v3.13 | 2026-06-06 | Step 4 标记完成（状态管理与数据层）；Step 10 新增：Android 安全区适配、桌面端最小窗口大小 |
 | v3.14 | 2026-06-06 | 主题切换重构为两层：主题风格（Claude/微软/谷歌/iOS 四套 UI 风格）+ 外观模式（浅色/深色/跟随系统）；数据模型 `UserProfile` 拆分为 `themeStyle` + `colorScheme`；Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher |
 | v3.15 | 2026-06-06 | Step 5 标记完成（翻译练习核心）：FlashCard 3D 翻转 + 滑动手势 + CardFront/CardBack + ScoreDisplay/FeedbackPanel + mockFeedback 模拟反馈 |
+| v3.16 | 2026-06-06 | 修复 `--spacing-sm` 与 Tailwind 内部 token 冲突（重命名为 `--space-*`）；新增题目偏好配置（PresetTopic 8 种预设 + 自定义文本）；空状态改为卡片式布局 + 双按钮（前往设置/生成题目）；新增 mockGenerateQuestions 模拟题目生成 |

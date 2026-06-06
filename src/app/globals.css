@@ -43,15 +43,15 @@
   --color-warning: #d4a017;
   --color-error: #c64545;
 
-  /* ===== Spacing system ===== */
-  --spacing-xxs: 4px;
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-xxl: 48px;
-  --spacing-section: 96px;
+  /* ===== Spacing system (use --space-* to avoid Tailwind --spacing-* collision) ===== */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 96px;
 
   /* ===== Border radius ===== */
   --radius-xs: 4px;
