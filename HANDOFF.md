@@ -24,7 +24,7 @@
 
 1. `AGENTS.md` — 行为规范（**必须遵守**）
 2. `FINAL_PLAN.md` — 完整开发规划（重点看 §5 数据结构 + §6 实施步骤）
-3. `awesome-design-md/design-md/claude/DESIGN.md` — Claude 设计规范
+3. `awesome-design-md/design-md/claude/DESIGN.md` — Claude 设计规范（**必须遵守**）
 
 ## 下一步：Phase 5 数据结构重构
 

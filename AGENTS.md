@@ -62,7 +62,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ```markdown
 ## 项目概况
-- 产品、目标平台、技术栈、包管理
+@FINAL_PLAN.md
 
 ## 当前进度
 | Phase | 状态 | 说明 |
@@ -93,9 +93,6 @@ Step N.1：...
 Step N.2：...
 （每个 Step 列出要改什么、改成什么）
 
-### 验收标准
-1. ...
-2. ...
 ```
 
 ### 写作原则
@@ -103,4 +100,3 @@ Step N.2：...
 1. **下一步必须详细**：新 Agent 读完就能开工，不需要再问"从哪开始"
 2. **列出具体文件**：不要只说"更新类型定义"，要说"在 `src/types/index.ts` 中新增 X、Y、Z"
 3. **标注当前状态 vs 目标**：让 Agent 知道要改什么、改成什么
-4. **验收标准可测试**：写"npm run build 无错误"而非"代码质量良好"
