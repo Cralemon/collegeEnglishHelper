@@ -35,10 +35,11 @@ const flipVariants = {
 const SWIPE_THRESHOLD = 100;
 
 /**
- * 3D 翻转卡片容器
+ * 3D 翻转卡片容器（叠卡模式）
  *
- * 正面：翻译作答，背面：AI 反馈。
- * 支持左右滑动切换题目（仅正面有效）。
+ * 卡片堆叠展示，左滑划走当前卡片展示下一张，右滑找回上一张。
+ * 卡片尺寸：宽度 90% 内容区，高度 = 窗口宽度，最大尺寸受限。
+ * 内容超出卡片高度时，卡片内部滚动。
  */
 export function FlashCard({
   isFlipped,
@@ -50,8 +51,8 @@ export function FlashCard({
   className,
 }: FlashCardProps) {
   const dragX = useMotionValue(0);
-  const opacity = useTransform(dragX, [-200, 0, 200], [0.5, 1, 0.5]);
-  const rotateZ = useTransform(dragX, [-200, 0, 200], [-5, 0, 5]);
+  const opacity = useTransform(dragX, [-300, -100, 0, 100, 300], [0.3, 1, 1, 1, 0.3]);
+  const rotateZ = useTransform(dragX, [-300, 0, 300], [-8, 0, 8]);
   const isDragging = useRef(false);
 
   const handleDragEnd = useCallback(
@@ -59,13 +60,13 @@ export function FlashCard({
       isDragging.current = false;
       const { offset, velocity } = info;
 
-      // 左滑：下一题
+      // 左滑：划走当前卡片，展示下一张
       if (offset.x < -SWIPE_THRESHOLD || velocity.x < -500) {
         onSwipeLeft?.();
         return;
       }
 
-      // 右滑：上一题
+      // 右滑：找回上一张卡片
       if (offset.x > SWIPE_THRESHOLD || velocity.x > 500) {
         onSwipeRight?.();
         return;
@@ -74,24 +75,24 @@ export function FlashCard({
     [onSwipeLeft, onSwipeRight],
   );
 
-  const content = !isFlipped ? (
+  const cardContent = !isFlipped ? (
     <motion.div
       key="front"
-      className="w-full"
+      className="w-full h-full"
       variants={flipVariants}
       initial="back"
       animate="front"
       exit="back"
       style={{ transformStyle: 'preserve-3d' }}
     >
-      <div className="w-full" style={{ backfaceVisibility: 'hidden' }}>
+      <div className="w-full h-full overflow-y-auto" style={{ backfaceVisibility: 'hidden' }}>
         {front}
       </div>
     </motion.div>
   ) : (
     <motion.div
       key="back"
-      className="w-full"
+      className="w-full h-full"
       variants={flipVariants}
       initial="front"
       animate="back"
@@ -99,7 +100,7 @@ export function FlashCard({
       style={{ transformStyle: 'preserve-3d' }}
     >
       <div
-        className="w-full"
+        className="w-full h-full overflow-y-auto"
         style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
       >
         {back}
@@ -110,7 +111,11 @@ export function FlashCard({
   return (
     <div
       className={cn(
-        'relative w-full max-w-[640px] mx-auto',
+        'relative mx-auto',
+        /* Width: 90% of content area, max 640px */
+        'w-[90%] max-w-[640px]',
+        /* Height: viewport width, clamped between 400px and 700px */
+        'h-[100vw] min-h-[400px] max-h-[700px]',
         '[perspective:1000px]',
         className,
       )}
@@ -118,14 +123,14 @@ export function FlashCard({
       <motion.div
         drag={!isFlipped ? 'x' : false}
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
+        dragElastic={0.3}
         onDragStart={() => { isDragging.current = true; }}
         onDragEnd={handleDragEnd}
         style={{ x: dragX, opacity, rotateZ }}
-        className="w-full touch-pan-y"
+        className="w-full h-full touch-pan-y rounded-xl overflow-hidden"
       >
         <AnimatePresence mode="wait" initial={false}>
-          {content}
+          {cardContent}
         </AnimatePresence>
       </motion.div>
     </div>

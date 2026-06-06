@@ -1,6 +1,6 @@
 # 大学英语翻译练习助手 — 开发规划
 
-> v3.16 | 2026-06-06 | 题目偏好 + 生成题目 + CSS spacing 修复
+> v3.17 | 2026-06-06 | 叠卡模式 + 字体规范 + 反馈数据结构 + 滚动条
 
 ---
 
@@ -268,6 +268,13 @@ public/fonts/               # 字体文件
 ```
 
 ### 4.2 字体配置
+
+**字体分工**：
+- **中文**：默认无衬线体（Sarasa Gothic / system-ui）
+- **英文及数字**：默认衬线体（EB Garamond）
+- 标题 `--font-display`：EB Garamond（衬线，英文/数字标题）
+- 正文 `--font-body`：Sarasa Gothic（无衬线，中文正文）
+- 实现：`body` 设 `font-family: var(--font-body)`，数字/英文用 `font-display` class
 
 ```typescript
 // styles/fonts.ts
@@ -664,7 +671,7 @@ class LLMService {
 
 ---
 
-#### Step 5：翻译练习核心 ✅
+#### Step 5：翻译练习核心 ✅（v1）→ 🔄 迭代中（v2）
 
 **目标**：卡片式翻译练习交互
 
@@ -682,6 +689,20 @@ class LLMService {
 - [x] 实现 CardFront + CardBack
 - [x] 实现模拟反馈
 - [x] 验证作答流程
+
+**Step 5 v2 迭代**：
+- [ ] **叠卡模式**：卡片堆叠展示，左滑划走当前卡片展示下一张，右滑找回上一张
+- [ ] **卡片尺寸**：宽度 = 内容宽度 90%，高度 = 窗口宽度，设最大尺寸限制
+- [ ] **卡片内滚动**：内容超出卡片高度时，卡片内部滚动（不撑大页面）
+- [ ] **分数字号**：得分数字显著大于 "/ 100" 后缀
+- [ ] **字体规范**：中文无衬线，英文/数字衬线（EB Garamond）
+- [ ] **滚动条样式**：Windows 下简化 webview 滚动条（不占宽，隐藏箭头，只留滑块）
+
+**AI 反馈数据结构重构**（设计中，待确认）：
+- 当前 `AIFeedback` 固定三维（语法/词汇/句型），后续需支持可变维度
+- 需要支持不同评估策略（如：仅语法检查、仅词汇建议）
+- 需要支持反馈来源标识（LLM / 规则引擎 / 用户自评）
+- 详见 types/index.ts 中的 `AIFeedback` 接口，Step 6 接入 LLM 前完成重构
 
 ---
 
@@ -920,3 +941,4 @@ git push origin develop --tags
 | v3.14 | 2026-06-06 | 主题切换重构为两层：主题风格（Claude/微软/谷歌/iOS 四套 UI 风格）+ 外观模式（浅色/深色/跟随系统）；数据模型 `UserProfile` 拆分为 `themeStyle` + `colorScheme`；Step 9 交付物拆分 ThemeStyleSwitcher + ColorSchemeSwitcher |
 | v3.15 | 2026-06-06 | Step 5 标记完成（翻译练习核心）：FlashCard 3D 翻转 + 滑动手势 + CardFront/CardBack + ScoreDisplay/FeedbackPanel + mockFeedback 模拟反馈 |
 | v3.16 | 2026-06-06 | 修复 `--spacing-sm` 与 Tailwind 内部 token 冲突（重命名为 `--space-*`）；新增题目偏好配置（PresetTopic 8 种预设 + 自定义文本）；空状态改为卡片式布局 + 双按钮（前往设置/生成题目）；新增 mockGenerateQuestions 模拟题目生成 |
+| v3.17 | 2026-06-06 | Step 5 v2 迭代规划：叠卡模式（左滑划走/右滑找回）、卡片尺寸约束（90% 宽 × 窗口宽高比）、卡片内滚动、分数字号、字体规范（中文无衬线/英文数字衬线）、滚动条简化、AI 反馈数据结构重构待设计 |

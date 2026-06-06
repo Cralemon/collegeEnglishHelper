@@ -25,14 +25,15 @@ function getScoreLabel(score: number): string {
  * 总分展示组件
  *
  * 大字显示分数 + 等级标签。
+ * 得分数字使用衬线大字，"/ 100" 使用较小的无衬线字。
  */
 export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
   return (
     <div className={cn('flex flex-col items-center gap-1', className)}>
       <p className="text-caption-uppercase text-muted">总分</p>
-      <p className={cn('font-display text-display-md leading-none', getScoreColor(score))}>
-        {score}
-        <span className="text-title-lg text-muted ml-1">/ 100</span>
+      <p className={cn('leading-none', getScoreColor(score))}>
+        <span className="font-display text-display-lg">{score}</span>
+        <span className="text-body-md text-muted ml-1.5">/ 100</span>
       </p>
       <p className={cn('text-caption font-medium', getScoreColor(score))}>
         {getScoreLabel(score)}
