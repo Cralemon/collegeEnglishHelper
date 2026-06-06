@@ -401,6 +401,21 @@ npx tauri android build --apk
 
 ---
 
+## EB Garamond 字体补回
+
+**日期**：2026-06-06
+
+**背景**：v3.12 字体优化时 EB Garamond 被标记为"暂移除，待补充 WOFF2 版本"，但后续未补回，导致 `--font-display` 回退到 Source Han Serif SC。
+
+**修复**：
+- 从 Google Fonts 下载 EB Garamond Latin WOFF2 子集（40KB）
+- `src/styles/fonts.ts`：重新添加 `ebGaramond` 导出，恢复 `fontVariables` 拼接
+- `src/app/globals.css`：`--font-display` 改回 `var(--font-eb-garamond), Georgia, serif`
+
+**注意**：字体文件在 `.gitignore` 中，首次 clone 需手动下载。
+
+---
+
 ## Step 4：状态管理与数据层 ✅
 
 **执行者**：Agent

@@ -11,7 +11,7 @@
 
 @theme {
   /* ===== Font families ===== */
-  --font-display: 'Source Han Serif SC', 'Noto Serif SC', Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-eb-garamond), Georgia, 'Times New Roman', serif;
   --font-body: var(--font-sarasa-gothic), Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif-cjk: 'Source Han Serif SC', 'Noto Serif SC', SimSun, 'Songti SC', serif;
   --font-code: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
