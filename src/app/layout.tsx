@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${fontVariables} h-full overflow-x-hidden antialiased`} suppressHydrationWarning>
+    <html lang="zh-CN" className={`${fontVariables} h-full overflow-hidden antialiased`} suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
