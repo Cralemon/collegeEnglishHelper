@@ -294,6 +294,17 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] 数据管理：清除练习数据
 - [ ] 用户画像展示：weakCategories、recentTrend（Phase 9）
 
+### Pre Phase 8：LLM 提示词设计 ⬜
+
+**目标**：梳理 LLM 接入点，为每个接入点设计 System Prompt + User Prompt
+
+- [ ] 接入点 1 — 翻译反馈评估：评估学生翻译，输出 AIFeedback JSON
+- [ ] 接入点 2 — 题目生成：基于用户画像生成个性化翻译练习题
+- [ ] 创建 `src/features/practice/services/prompts.ts`
+- [ ] 占位符参数化：`buildFeedbackPrompt(params)` + `buildQuestionGenerationPrompt(params)`
+
+> 详细提示词设计见 `HANDOFF.md` Pre Phase 8 章节。
+
 ### Phase 8：LLM 集成 ⬜
 
 **目标**：替换 mock 数据，接入真实 LLM
@@ -327,32 +338,27 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 
 ---
 
-## 8. Prompt 设计要点
+## 8. Prompt 设计
 
-### 8.1 输出格式要求
+> 详细设计已移至 `HANDOFF.md` Pre Phase 8 章节，包含：
+> - 2 个 LLM 接入点的完整 System Prompt + User Prompt
+> - 占位符汇总表
+> - 实现策略
 
-LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
+### 8.1 接入点概览
+
+| # | 接入点 | 触发时机 | 输出 |
+|---|--------|---------|------|
+| 1 | 翻译反馈评估 | 用户提交翻译 | `AIFeedback` JSON |
+| 2 | 题目生成 | 无题目 / 最后一题"生成下一组" | `Question[]` JSON |
+
+### 8.2 核心约束
 
 - `score`：0-100 整数
-- `issues`：每个 issue 必须包含 `category`（从预定义枚举选择）和 `severity`
-- `translationStrategy.approach`：三选一
-- `overallSuggestion`：字符串数组
-
-### 8.2 Prompt 示例框架
-
-```
-你是一位大学英语翻译教师。请评估以下翻译，输出 JSON 格式反馈。
-
-题目：{sourceText}
-用户翻译：{userTranslation}
-
-要求：
-1. 语法/词汇/句型三维评分（0-100）
-2. 每个维度列出具体问题，问题分类必须从以下枚举选择：
-   [IssueCategory 枚举列表]
-3. 分析翻译策略（直译/意译/结合）
-4. 给出整体学习建议
-```
+- `issues`：每个 issue 必须包含 `category`（从预定义 IssueCategory 枚举选择）和 `severity`
+- `translationStrategy.approach`：三选一（"直译为主" / "意译为主" / "直译意译结合"）
+- 评分需根据学生水平（`gradeLevel` + `vocabularyLevel`）动态调整
+- 出题需覆盖学生偏好主题，难度与学生水平匹配
 
 ---
 
@@ -366,3 +372,4 @@ LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
 | v2.2 | 2026/06/06 | Phase 5 代码对齐：types/mockFeedback/FeedbackPanel/reviewStore 全部更新至新结构 |
 | v2.3 | 2026/06/06 | Pre Phase 6 + Phase 6 + Polish：首页接口重构、回顾页完整 UI、ScrollFade、卡片高度、展开动画 |
 | v2.4 | 2026/06/06 | Phase 7：设置页完整功能（UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection） |
+| v2.5 | 2026/06/07 | Pre Phase 8：LLM 接入点梳理 + 提示词设计（翻译反馈 + 题目生成两个 System/User Prompt） |
