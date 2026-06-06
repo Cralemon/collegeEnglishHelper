@@ -19,8 +19,8 @@ const SWIPE_THRESHOLD = 80;
 /**
  * 3D 翻转卡片容器
  *
- * 单层结构：perspective 容器 → motion.drag 卡片 → 内容面
- * 卡片通过 max-h 限制最大尺寸，默认 flex-1 满高。
+ * 高度用 dvh 直接计算：100dvh - 顶部安全间距(3rem) - 底部导航(3rem)
+ * 最大 700px。不依赖 flex 高度链。
  */
 export function FlashCard({
   isFlipped,
@@ -49,15 +49,15 @@ export function FlashCard({
     [onSwipeLeft, onSwipeRight],
   );
 
-  // 决定当前显示的内容和翻转动画
   const activeContent = isFlipped ? back : front;
   const animate = isFlipped ? { rotateY: 180 } : { rotateY: 0 };
 
   return (
     <div
       className={cn(
-        // perspective 容器：宽高由 flex 父级决定，max-w/max-h 限制上限
-        'relative w-full max-w-[640px] mx-auto flex-1 min-h-0 max-h-[700px]',
+        'relative w-full max-w-[640px] mx-auto max-h-[700px]',
+        /* 高度 = 视口 - 顶部间距(1.5rem) - 标题+间距(~3.5rem) - 底部导航(3rem) */
+        'h-[calc(100dvh-8rem)]',
         '[perspective:1000px]',
         className,
       )}
