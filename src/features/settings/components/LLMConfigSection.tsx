@@ -17,7 +17,7 @@ export function LLMConfigSection() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* API 地址 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label className="text-body-sm font-medium text-ink">API 地址</label>
           <Input
             placeholder="https://api.openai.com/v1"
@@ -27,7 +27,7 @@ export function LLMConfigSection() {
         </div>
 
         {/* API Key */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label className="text-body-sm font-medium text-ink">API Key</label>
           <div className="relative">
             <Input
@@ -62,7 +62,7 @@ export function LLMConfigSection() {
         </div>
 
         {/* 模型名称 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label className="text-body-sm font-medium text-ink">模型名称</label>
           <Input
             placeholder="gpt-4o"

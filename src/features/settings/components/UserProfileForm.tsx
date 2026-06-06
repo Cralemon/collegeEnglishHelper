@@ -53,7 +53,7 @@ export function UserProfileForm() {
       </CardHeader>
       <CardContent className="space-y-5">
         {/* 昵称 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label className="text-body-sm font-medium text-ink">昵称</label>
           <Input
             placeholder="输入你的昵称"
@@ -63,7 +63,7 @@ export function UserProfileForm() {
         </div>
 
         {/* 学年段 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <label className="text-body-sm font-medium text-ink">学年段</label>
           <Tabs
             defaultValue={userProfile.gradeLevel}
@@ -81,7 +81,7 @@ export function UserProfileForm() {
         </div>
 
         {/* 预估词汇量 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-body-sm font-medium text-ink">预估词汇量</label>
             <input
@@ -100,10 +100,10 @@ export function UserProfileForm() {
           </div>
 
           {/* Slider + tooltip */}
-          <div className="relative pt-7">
+          <div className="relative">
             {/* Tooltip */}
             <div
-              className="absolute top-0 -translate-x-1/2 bg-surface-dark text-on-dark text-caption font-medium px-2.5 py-1 rounded-md transition-opacity duration-150 pointer-events-none whitespace-nowrap"
+              className="absolute -top-8 -translate-x-1/2 bg-surface-dark text-on-dark text-caption font-medium px-2.5 py-1 rounded-md transition-opacity duration-150 pointer-events-none whitespace-nowrap"
               style={{
                 left: `${percent}%`,
                 opacity: isDragging ? 1 : 0,
