@@ -730,6 +730,10 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | `src/app/review/page.tsx` | 滚动区域换用 `<ScrollFade>` |
 | `src/app/settings/page.tsx` | 滚动区域换用 `<ScrollFade>` |
 
+### 踩坑
+
+- **text-display-md 自定义类未生效**：`@layer utilities` 中定义的 `.text-display-md` 在 Tailwind CSS 4 下未被正确应用，渲染结果为 `text-md`（16px 而非 36px）。改用标准 Tailwind 类 `text-5xl`（48px）+ `font-bold` 解决。自定义 CSS 工具类在 CSS4 JIT 下存在兼容风险，优先使用标准类。
+
 ### 技术笔记
 
 - **flex 子元素中 h-[calc(...)] 不生效**：`flex-1` 让高度由父容器弹性分配，`h-[calc(...)]` 只在高度比弹性分配结果小时才起约束作用。要让卡片在弹性布局中矮一点，应在元素上加 `mb-*` 从分配空间中扣减，而非设置一个通常被覆盖的固定高度。

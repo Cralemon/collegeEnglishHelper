@@ -78,7 +78,7 @@
 
 - **ScrollFade**（新建 `src/components/layout/ScrollFade.tsx`）：顶部 + 底部双端渐隐遮罩，`ResizeObserver + scroll` 检测滚动位置，到顶/底时对应遮罩 `opacity-0`
 - **FlashCard**：去掉对 flex 子元素无效的 `h-[calc(100dvh-13rem)]`，改为 `mb-6` 从弹性分配高度中扣减底部空间
-- **StatsOverview**：数字 `text-display-sm → text-display-md`，sub 标签 `text-caption → text-body-sm`
+- **StatsOverview**：数字改用标准 Tailwind 类 `text-5xl`（48px）+ `font-bold`（自定义 `text-display-md` 在 CSS4 下未生效），sub 标签 `text-caption → text-body-sm`
 - **ImprovementList**：展开区域改用 `grid-template-rows: 0fr → 1fr` CSS 高度动画（200ms），进度条移入 button 内部消除位置异常
 - **review / settings page**：滚动区域替换为 `<ScrollFade>`
 

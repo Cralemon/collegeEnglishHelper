@@ -266,14 +266,14 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] 叠卡模式 + 3D 翻转 + 滑动手势
 - [x] 模拟反馈（mockFeedback.ts）— 旧结构
 
-### Phase 5：数据结构重构 ⬜ 下一步
+### Phase 5：数据结构重构 ✅
 
 **目标**：将代码中的数据结构对齐 FINAL_PLAN §5 新设计
 
-- [ ] 更新 `types/index.ts`：新增 Issue、IssueCategory、TranslationStrategy、LearningData 等类型
-- [ ] 更新 `mockFeedback.ts`：生成符合新结构的模拟数据
-- [ ] 更新 `FeedbackPanel.tsx`：展示 issues 列表（severity 标记）+ 翻译策略分析
-- [ ] 更新 `reviewStore.ts`：基于 Issue.category 聚合改进点，计算 mastery
+- [x] 更新 `types/index.ts`：新增 Issue、IssueCategory、TranslationStrategy、LearningData 等类型
+- [x] 更新 `mockFeedback.ts`：生成符合新结构的模拟数据
+- [x] 更新 `FeedbackPanel.tsx`：展示 issues 列表（severity 标记）+ 翻译策略分析
+- [x] 更新 `reviewStore.ts`：基于 Issue.category 聚合改进点，计算 mastery
 
 ### Phase 6：回顾页 ⬜
 
@@ -362,3 +362,4 @@ LLM 需要输出符合 `AIFeedback` 结构的 JSON，关键约束：
 | v2.0 | 2026/06/06 | 重新设计：精简架构、AI反馈三维评估、自适应布局、Radix UI、Tauri |
 | v2.1 | 2026/06/06 | AI反馈数据结构深化：新增 Issue 标准化分类、翻译策略维度、掌握度追踪、用户学习数据 |
 | v2.2 | 2026/06/06 | Phase 5 代码对齐：types/mockFeedback/FeedbackPanel/reviewStore 全部更新至新结构 |
+| v2.3 | 2026/06/06 | Pre Phase 6 + Phase 6 + Polish：首页接口重构、回顾页完整 UI、ScrollFade、卡片高度、展开动画 |
