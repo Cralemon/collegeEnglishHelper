@@ -43,16 +43,6 @@
   --color-warning: #d4a017;
   --color-error: #c64545;
 
-  /* ===== Spacing system (use --space-* to avoid Tailwind --spacing-* collision) ===== */
-  --space-xxs: 4px;
-  --space-xs: 8px;
-  --space-sm: 12px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-xxl: 48px;
-  --space-section: 96px;
-
   /* ===== Border radius ===== */
   --radius-xs: 4px;
   --radius-sm: 6px;
@@ -69,6 +59,21 @@
 
   /* ===== Navigation ===== */
   --nav-pill-radius: 9999px;
+}
+
+/*
+ * Spacing design tokens — outside @theme to avoid Tailwind normalizing
+ * --space-* into --spacing-* (which collides with max-w-sm etc.)
+ */
+:root {
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 96px;
 }
 
 /* ===== Dark color scheme (applies to all theme styles) ===== */

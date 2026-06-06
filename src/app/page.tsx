@@ -28,28 +28,31 @@ export default function HomePage() {
 
   if (questions.length === 0) {
     return (
-      <div className="space-y-6">
-        <h1 className="font-display text-display-sm text-ink">翻译练习</h1>
-        <EmptyState
-          isGenerating={isGenerating}
-          onGenerate={handleGenerate}
-        />
+      <div className="flex flex-col h-full">
+        <h1 className="font-display text-display-sm text-ink mb-6">翻译练习</h1>
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          <EmptyState
+            isGenerating={isGenerating}
+            onGenerate={handleGenerate}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-display-sm text-ink">翻译练习</h1>
-
-      <FlashCard
-        isFlipped={isFlipped}
-        onFlip={setFlipped}
-        front={<CardFront />}
-        back={<CardBack />}
-        onSwipeLeft={nextQuestion}
-        onSwipeRight={prevQuestion}
-      />
+    <div className="flex flex-col h-full">
+      <h1 className="font-display text-display-sm text-ink mb-6">翻译练习</h1>
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <FlashCard
+          isFlipped={isFlipped}
+          onFlip={setFlipped}
+          front={<CardFront />}
+          back={<CardBack />}
+          onSwipeLeft={nextQuestion}
+          onSwipeRight={prevQuestion}
+        />
+      </div>
     </div>
   );
 }
