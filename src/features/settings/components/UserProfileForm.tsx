@@ -24,7 +24,7 @@ export function UserProfileForm() {
       </CardHeader>
       <CardContent className="space-y-5">
         {/* 昵称 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-body-sm font-medium text-ink">昵称</label>
           <Input
             placeholder="输入你的昵称"
@@ -34,7 +34,7 @@ export function UserProfileForm() {
         </div>
 
         {/* 学年段 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-body-sm font-medium text-ink">学年段</label>
           <Tabs
             defaultValue={userProfile.gradeLevel}
@@ -52,7 +52,7 @@ export function UserProfileForm() {
         </div>
 
         {/* 预估词汇量 */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="text-body-sm font-medium text-ink">预估词汇量</label>
             <span className="text-title-sm text-primary tabular-nums">
