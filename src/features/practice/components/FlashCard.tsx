@@ -52,8 +52,8 @@ export function FlashCard({
   return (
     <div
       className={cn(
-        'relative w-full max-w-[640px] mx-auto',
-        'flex-1 min-h-0',
+        'relative w-full max-w-[640px] mx-auto max-h-[700px]',
+        'flex-1 min-h-0 h-[calc(100dvh-12rem)]',
         '[perspective:1000px]',
         className,
       )}
