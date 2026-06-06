@@ -12,7 +12,7 @@ import {
 import { mockGenerateQuestions } from '@/features/practice/services/mockGenerateQuestions';
 
 export default function HomePage() {
-  const { questions, currentIndex, isFlipped, setFlipped, nextQuestion, prevQuestion, setQuestions } =
+  const { questions, isFlipped, setFlipped, nextQuestion, prevQuestion, setQuestions } =
     usePracticeStore();
   const { userProfile } = useSettingsStore();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -49,7 +49,6 @@ export default function HomePage() {
         back={<CardBack />}
         onSwipeLeft={nextQuestion}
         onSwipeRight={prevQuestion}
-        currentIndex={currentIndex}
       />
     </div>
   );
