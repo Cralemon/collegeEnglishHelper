@@ -1,15 +1,12 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button, Card, CardContent, CardFooter } from '@/components/ui';
 import { cn } from '@/utils/cn';
 
 interface EmptyStateProps {
-  /** 是否正在生成题目 */
   isGenerating?: boolean;
-  /** 生成题目回调 */
   onGenerate?: () => void;
-  /** 自定义类名 */
   className?: string;
 }
 
@@ -17,13 +14,15 @@ interface EmptyStateProps {
  * 空状态 — 无题目时展示
  *
  * 单张卡片，内含提示信息 + 操作按钮。
- * 按钮在卡片底部，等高排列。
+ * 两个按钮均为 <button>，保证等高。
  */
 export function EmptyState({
   isGenerating = false,
   onGenerate,
   className,
 }: EmptyStateProps) {
+  const router = useRouter();
+
   return (
     <Card variant="default" size="lg" className={cn('max-w-lg mx-auto', className)}>
       <CardContent>
@@ -39,11 +38,14 @@ export function EmptyState({
       </CardContent>
 
       <CardFooter className="flex-col sm:flex-row gap-3 pt-2">
-        <Link href="/settings" className="flex-1 w-full sm:w-auto flex">
-          <Button variant="secondary" size="md" className="flex-1">
-            前往设置
-          </Button>
-        </Link>
+        <Button
+          variant="secondary"
+          size="md"
+          className="flex-1 w-full sm:w-auto"
+          onClick={() => router.push('/settings')}
+        >
+          前往设置
+        </Button>
         <Button
           variant="primary"
           size="md"
