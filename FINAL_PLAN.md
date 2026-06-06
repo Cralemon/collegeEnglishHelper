@@ -612,7 +612,7 @@ class LLMService {
 
 ---
 
-#### Step 3：布局与导航
+#### Step 3：布局与导航 ✅
 
 **目标**：主布局 + 路由 + 底部导航
 
@@ -891,3 +891,5 @@ git push origin develop --tags
 | v3.8 | 2026-06-05 | BottomNav 响应式优化：移动端底部水平 → 平板+侧边垂直居中；新增 `useNavPosition` Hook（左/右位置持久化）；活跃标签 30% 主题色 pill 背景；导航标签字号缩小（11px） |
 | v3.9 | 2026-06-05 | BottomNav 四项修复：移动端间距统一（移除 mx-1.5，改用 gap）；字号进一步缩小（10px）；hover/active 圆角动态计算（radius - padding）；撤销滑动指示器，恢复直接背景实现 |
 | v3.10 | 2026-06-05 | BottomNav 字号调整为 12px（`text-xs`）；删除 `globals.css` 中未使用的 `.text-caption-small`；新增 `AGENTS.md` 行为规范 |
+| v3.11 | 2026-06-05 | Step 3 标记完成；修复 Android APK 构建（签名配置位置、CLI 入口路径、JDK 版本、keyAlias）；Cargo.toml 添加 release 优化（strip/lto） |
+| v3.12 | 2026-06-05 | 字体优化：SourceHanSerif.ttc（163MB）→ WOFF2 子集（5MB）；Sarasa UI SC（134MB）→ WOFF2 子集（3MB）；移除 EB Garamond（待 WOFF2 补充）；APK 体积从 767MB 预计降至 ~15MB |

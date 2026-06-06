@@ -324,6 +324,83 @@ Agent：执行（写代码、改配置）
 
 ---
 
+## Step 3 完成：布局与导航
+
+**Step 3 已全部完成**，包含以下子任务：
+- AppLayout 响应式容器
+- BottomNav 底部 Pill 导航（移动端水平底部 / 平板+垂直侧边）
+- 三个页面路由（/、/review、/settings）
+- 占位页面
+- 多轮迭代优化（字号、间距、圆角、hover、位置切换）
+
+---
+
+## Android APK 构建（v3.11）
+
+**目标**：首次构建 Android release APK
+
+**问题链**（共 5 个，逐一排查）：
+
+| # | 错误 | 根因 | 修复 |
+|---|------|------|------|
+| 1 | `cargo: command not found` | bash/PowerShell PATH 缺少 `.cargo\bin` | 构建命令前加 `$env:Path` |
+| 2 | `node.bat` 进程启动失败 | `BuildTask.kt` 硬编码了 fnm 临时目录路径，该目录已过期 | 改为 fnm 稳定安装路径 |
+| 3 | `Cannot find module 'src-tauri\tauri'` | `BuildTask.kt` 用 `node tauri` 调用 CLI，但 `tauri` 不是有效 JS 入口 | 改为 `node ../node_modules/@tauri-apps/cli/tauri.js` |
+| 4 | `requires JVM runtime version 11` | 默认 JAVA_HOME 指向 JDK 8，AGP 8.x 需 JDK 11+ | 构建时设 `JAVA_HOME` → JDK 21 |
+| 5 | `No key with alias 'ceaEnglish'` | keystore 实际 alias 是 `craenglish`（全小写），配置写错了 | 修正 `keystore.properties` |
+
+**额外修复**：
+- 签名配置从根 `build.gradle.kts`（无效）移至 `app/build.gradle.kts`（正确位置）
+- `Cargo.toml` 添加 `[profile.release]`：`strip = true`, `lto = true`, `codegen-units = 1`, `opt-level = "s"`
+
+**构建命令**（PowerShell）：
+```powershell
+$env:JAVA_HOME = "C:\Users\28618\scoop\apps\temurin21-jdk\current"
+$env:Path = "C:\Users\28618\scoop\persist\fnm\node-versions\v24.15.0\installation;C:\Users\28618\.cargo\bin;$env:Path"
+npx tauri android build --apk
+```
+
+**APK 输出位置**：`src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
+
+**关键经验**：
+1. Tauri 的 `gen/android/` 是自动生成的，但 `BuildTask.kt` 中的 node 路径会在 `tauri android init` 时固化——如果用 fnm 等临时 PATH 管理器，生成的路径会过期
+2. Android Gradle Plugin 8.x 强制要求 JDK 17+，scoop 默认的 temurin8-jdk 不够
+3. `keytool -list` 可以查看 keystore 中的实际 alias，不要靠记忆
+
+---
+
+## 字体优化（v3.12）
+
+**问题**：APK 767MB，远超正常值（~30MB）
+
+**根因**：`public/fonts/` 包含 297MB 字体文件，被 `next build` 复制到 `out/fonts/`，Tauri 再嵌入 APK
+
+| 字体 | 原始大小 | 优化后 | 方式 |
+|------|---------|--------|------|
+| SourceHanSerif.ttc（35 个字体） | 163MB | 5.0MB | 提取 SC Regular+Bold → WOFF2 子集（3818 CJK 字符） |
+| SarasaUiSC（10 个变体） | 134MB | 2.9MB | 保留 Regular/SemiBold/Bold → WOFF2 子集 |
+| EBGaramond（10 个变体） | 5MB | 暂移除 | 待补充 WOFF2 版本 |
+| **总计** | **297MB** | **7.9MB** | **↓ 97%** |
+
+**WOFF2 子集字符集**：
+- 应用源码中的所有字符（207 个）
+- CJK 常用字 3818 个（U+4E00-U+5CFF）
+- 基本 Latin + 数字 + 标点
+- CJK 标点符号
+
+**修改文件**：
+- `src/styles/fonts.ts`：移除 EB Garamond，Sarasa 改用 WOFF2
+- `src/app/globals.css`：`--font-display` 移除 `var(--font-eb-garamond)` 引用
+- `public/fonts/`：删除所有 TTF/TTC，保留 WOFF2 子集
+
+**关键经验**：
+1. `public/` 目录会被 Next.js 原样复制到 `out/`——大文件会直接膨胀 APK
+2. TTC 文件包含多个语言变体，提取需要的变体可以大幅减少体积
+3. `fonttools` 的 subset + WOFF2 转换一步到位，3818 字符子集约 2.5MB
+4. Android 自带思源宋体（Noto Serif CJK），CJK 字体不需要嵌入——但 Web/Desktop 需要
+
+---
+
 ## Agent 协作原则（持续更新）
 
 ### 原则 1：先规划，后执行
