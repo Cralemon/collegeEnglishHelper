@@ -1,8 +1,7 @@
 'use client';
 
-import { forwardRef, type HTMLAttributes, useEffect, useCallback } from 'react';
+import { forwardRef, type HTMLAttributes, useEffect, useState, useRef } from 'react';
 import { cn } from '@/utils/cn';
-import { Button } from './Button';
 
 // ============================================================
 // Dialog
@@ -15,36 +14,63 @@ export interface DialogProps {
 }
 
 function Dialog({ open, onOpenChange, children }: DialogProps) {
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onOpenChange(false);
-    },
-    [onOpenChange],
-  );
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (open) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
+      setMounted(true);
+      // Trigger enter animation after paint
+      timerRef.current = setTimeout(() => setVisible(true), 16);
+    } else {
+      setVisible(false);
+      // Unmount after exit animation completes
+      timerRef.current = setTimeout(() => setMounted(false), 200);
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [open, handleKeyDown]);
+  }, [open]);
 
-  if (!open) return null;
+  // Lock scroll + Escape key while mounted (covers enter + exit animation)
+  useEffect(() => {
+    if (!mounted) return;
+
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onOpenChange(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [mounted, onOpenChange]);
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className={cn(
+          'absolute inset-0 bg-black/40 transition-opacity duration-200',
+          visible ? 'opacity-100' : 'opacity-0',
+        )}
         onClick={() => onOpenChange(false)}
         aria-hidden
       />
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md">{children}</div>
+      <div
+        className={cn(
+          'relative z-10 w-full max-w-md transition-all duration-200',
+          visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function AppConfigSection() {
       </CardHeader>
       <CardContent className="space-y-5">
         {/* 翻译方向 */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <label className="text-body-sm font-medium text-ink">翻译方向</label>
           <Tabs
             defaultValue={userProfile.translationDirection}
@@ -56,7 +56,7 @@ export function AppConfigSection() {
         </div>
 
         {/* 翻译模式 */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <label className="text-body-sm font-medium text-ink">翻译模式</label>
           <Tabs
             defaultValue={userProfile.translationMode}
@@ -71,7 +71,7 @@ export function AppConfigSection() {
         </div>
 
         {/* 外观主题 */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <label className="text-body-sm font-medium text-ink">外观主题</label>
           <Tabs
             defaultValue={userProfile.theme}
@@ -87,7 +87,7 @@ export function AppConfigSection() {
         </div>
 
         {/* 题目偏好 */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <label className="text-body-sm font-medium text-ink">题目偏好</label>
           <div className="flex flex-wrap gap-2">
             {PRESET_TOPICS.map(({ value, label }) => {
@@ -107,7 +107,7 @@ export function AppConfigSection() {
         </div>
 
         {/* 自定义题目偏好 */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <label className="text-body-sm font-medium text-ink">自定义偏好（可选）</label>
           <Textarea
             placeholder="描述你希望练习的翻译主题，例如：体育赛事、环保话题、文学作品..."
