@@ -13,7 +13,7 @@
 | Step 2：设计系统与字体 | ✅ |
 | Step 3：布局与导航 | ✅ |
 | Step 4：状态管理与数据层 | ✅ |
-| Step 5：翻译练习核心 | ✅ |
+| Step 5：翻译练习核心 | ✅ v2 迭代完成 |
 | Step 6：LLM 集成 | ⬜ 下一步 |
 
 ## 写代码前必须阅读
@@ -40,22 +40,28 @@
 | 练习 Store | `src/features/practice/store.ts` |
 | 练习组件 | `src/features/practice/components/` |
 | 模拟反馈 | `src/features/practice/services/mockFeedback.ts` |
+| 模拟题目生成 | `src/features/practice/services/mockGenerateQuestions.ts` |
 | 回顾 Store | `src/features/review/store.ts` |
 | 设置 Store | `src/features/settings/store.ts` |
 | 底部导航 | `src/components/layout/BottomNav.tsx` |
 | 主布局 | `src/components/layout/AppLayout.tsx` |
 
-## Step 5 实现摘要
+## Step 5 实现摘要（v2）
 
-- 安装 `framer-motion` 依赖
-- `FlashCard`：3D 翻转容器（perspective + rotateY），支持左右滑动切换题目
-- `CardFront`：正面 — 题目展示 + Textarea 输入 + 提交按钮 + 模拟 AI 评估
-- `CardBack`：背面 — ScoreDisplay 总分 + FeedbackPanel 三维反馈 + 下一题按钮
-- `ScoreDisplay`：大字分数 + 颜色编码（绿/黄/红）+ 等级标签
-- `FeedbackPanel`：语法/词汇/句型三维度可折叠面板（`<details>` 原生折叠）
-- `EmptyState`：无题目时的引导页面
-- `mockFeedback.ts`：模拟 AI 反馈数据生成（Step 6 接入真实 LLM 后废弃）
+- **叠卡模式**：左滑划走当前卡片，右滑找回上一张
+- **3D 翻转**：framer-motion rotateY，始终渲染正反两面，backfaceVisibility 控制可见性
+- **卡片尺寸**：`h-[calc(100dvh-12rem)]`，`max-h-[700px]`，`max-w-[640px]`
+- **字体**：`--font-body: EB Garamond → Sarasa Gothic → system-ui`（拉丁衬线，CJK 无衬线）
+- **Textarea**：`wrapperClassName` prop 支持满高
+- **布局**：AppLayout `flex flex-col`（无 overflow），各页面 `flex-1 min-h-0` 独立管理滚动
+- **导航状态**：已作答题目自动显示反馈面
+
+## 待完成
+
+- Step 6：LLM 集成（替换 mockFeedback/mockGenerateQuestions）
+- Step 6 前：AI 反馈数据结构重构（支持可变维度、评估策略、反馈来源）
+- Step 9：主题风格切换 + 题目偏好设置 UI
 
 ---
 
-*Step 5 完成后更新。*
+*Step 5 v2 迭代完成后更新。*

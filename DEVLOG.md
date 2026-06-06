@@ -518,6 +518,42 @@ interface TopicPreference {
 
 ---
 
+## Step 5 v2 迭代记录
+
+### 叠卡模式
+
+将单卡翻转改为叠卡模式：左滑划走当前卡片展示下一张，右滑找回上一张。使用 framer-motion drag + animate rotateY 实现 3D 翻转。
+
+### 字体规范简化
+
+最初在 `@theme` 中定义了 `--font-display`、`--font-body`、`--font-serif-cjk` 三个字体变量。经澄清后简化为单一 `--font-body`：`EB Garamond → Sarasa Gothic → system-ui`。EB Garamond 只含拉丁字符，fallback 到更纱黑体处理 CJK。删除所有 `font-display` class 引用。
+
+### CSS spacing 命名冲突
+
+Tailwind CSS 4 的 `@theme` 会将 `--space-*` 归一化为 `--spacing-*`，导致 `max-w-sm` 解析为 `12px` 而非 `24rem`。最终将 spacing 变量移出 `@theme` 到 `:root` 解决。
+
+### 布局链路与滚动条
+
+核心难题：卡片使用 `dvh` 计算高度，但中间容器的 `overflow-y-auto` 产生滚动条 → `dvh` 基准突变 → 卡片高度跳变。
+
+**最终方案**：
+- `html`：无 overflow（不产生根级滚动条）
+- AppLayout 内容 div：`flex flex-col`（无 overflow，不产生中间滚动条）
+- 各页面 wrapper：`flex flex-col flex-1 min-h-0`（参与弹性分配）
+- settings/review 页面：内部 `overflow-y-auto`（长内容独立滚动）
+- 卡片内部：`overflow-y-auto`（卡片内容滚动）
+- 唯一的滚动条在卡片内部或页面内容区，不在中间容器
+
+### Textarea 满高
+
+Textarea 组件内有 `div.w-full` 包裹层，无高度属性，导致 `h-full` 无法穿透。新增 `wrapperClassName` prop 解决。
+
+### 导航状态恢复
+
+`prevQuestion`/`nextQuestion`/`setCurrentIndex` 原本无条件设置 `isFlipped: false`。修复后检查 `answerRecords`，已作答题目自动显示反馈面。
+
+---
+
 ## 当前进度
 
 | Step | 状态 | 说明 |
@@ -526,7 +562,7 @@ interface TopicPreference {
 | Step 2：设计系统与字体 | ✅ Agent 完成 | Claude 设计系统 + 字体 + 5 个基础组件 |
 | Step 3：布局与导航 | ✅ Agent 完成 | AppLayout + 底部 Pill 导航 + 路由 |
 | Step 4：状态管理与数据层 | ✅ Agent 完成 | Zustand stores + localStorage + 类型定义 |
-| Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 3D 翻转 + 滑动手势 + 模拟反馈 |
+| Step 5：翻译练习核心 | ✅ Agent 完成 | FlashCard 叠卡 + 3D 翻转 + 滑动手势 + 模拟反馈 + v2 迭代 |
 | Step 6-10 | 待开始 | — |
 
 ---
