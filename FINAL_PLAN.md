@@ -237,48 +237,77 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] Next.js 16 + Tailwind CSS 4 + Radix UI
 - [x] 项目结构、主题变量、基础组件库
 
-### Phase 2：数据层 + 状态管理 🔄
+### Phase 2：布局与导航 ✅
 
-- [ ] 类型定义（types/index.ts）
-- [ ] Zustand Store 结构
-- [ ] localStorage 持久化
+- [x] AppLayout 响应式容器
+- [x] BottomNav 底部 Pill 导航（移动端水平 / 平板+垂直侧边）
+- [x] 三个页面路由（/、/review、/settings）
 
-### Phase 3：练习页核心 📋
+### Phase 3：状态管理与数据层 ✅
 
-- [ ] 正面：题目展示 + 翻译输入
-- [ ] 反面：三维评分卡片 + 问题列表
-- [ ] 滑动切换动画
-- [ ] 模拟反馈（mockFeedback.ts）
+- [x] 类型定义（types/index.ts）— 旧结构
+- [x] Zustand Store（practiceStore、reviewStore、settingsStore）
+- [x] localStorage 持久化
 
-### Phase 4：回顾页 + 统计 📋
+### Phase 4：练习页核心 ✅
 
-- [ ] 统计概览卡片
-- [ ] 改进点列表（按 category 聚合）
-- [ ] 分数趋势图
+- [x] 正面：题目展示 + 翻译输入
+- [x] 反面：三维评分卡片
+- [x] 叠卡模式 + 3D 翻转 + 滑动手势
+- [x] 模拟反馈（mockFeedback.ts）— 旧结构
 
-### Phase 5：个人/设置页 📋
+### Phase 5：数据结构重构 ⬜ 下一步
 
-- [ ] 用户信息表单
-- [ ] LLM 配置
-- [ ] 数据管理
+**目标**：将代码中的数据结构对齐 FINAL_PLAN §5 新设计
 
-### Phase 6：LLM 集成 📋
+- [ ] 更新 `types/index.ts`：新增 Issue、IssueCategory、TranslationStrategy、LearningData 等类型
+- [ ] 更新 `mockFeedback.ts`：生成符合新结构的模拟数据
+- [ ] 更新 `FeedbackPanel.tsx`：展示 issues 列表（severity 标记）+ 翻译策略分析
+- [ ] 更新 `reviewStore.ts`：基于 Issue.category 聚合改进点，计算 mastery
 
-- [ ] Prompt 设计（输出 AIFeedback 结构）
-- [ ] Vercel AI SDK 集成
-- [ ] 输出校验与 fallback
+### Phase 6：回顾页 ⬜
 
-### Phase 7：高级功能 📋
+**目标**：展示统计数据和改进点，支持薄弱点追踪
 
-- [ ] 用户画像更新逻辑
-- [ ] 基于 weakCategories 的智能出题
-- [ ] 掌握度追踪
+- [ ] 统计概览卡片：刷题数、平均分、各维度分数
+- [ ] 改进点列表：按 category 聚合，按 frequency/mastery 排序，可展开查看详情
+- [ ] 分数趋势图（Recharts 面积图）
+- [ ] 薄弱点筛选：点击改进点可筛选相关题目
 
-### Phase 8：Polish + Tauri 📋
+### Phase 7：设置页 ⬜
 
-- [ ] 响应式适配
-- [ ] Tauri 打包
-- [ ] 性能优化
+**目标**：用户信息管理 + 应用配置
+
+- [ ] 用户信息表单：昵称、学年段、词汇量
+- [ ] 应用设置：主题风格、深浅色、翻译方向、题目偏好
+- [ ] LLM 配置：API 地址、密钥、模型选择
+- [ ] 数据管理：清除数据、导出/导入
+- [ ] 用户画像展示：weakCategories、recentTrend
+
+### Phase 8：LLM 集成 ⬜
+
+**目标**：替换 mock 数据，接入真实 LLM
+
+- [ ] Prompt 设计：输出 AIFeedback 结构，包含 IssueCategory 枚举约束
+- [ ] Vercel AI SDK 集成：API Route + 流式响应
+- [ ] 输出校验：JSON Schema 验证 + fallback 处理
+- [ ] 题目生成：基于用户画像（weakCategories）智能出题
+
+### Phase 9：学习闭环 ⬜
+
+**目标**：实现答题→反馈→优化的完整循环
+
+- [ ] 用户画像更新：每次答题后更新 LearningData
+- [ ] 掌握度追踪：updateMastery 逻辑（出现 -10，连续未出现 +5）
+- [ ] 智能出题：基于 weakCategories 优先推荐薄弱点相关题目
+- [ ] 难度调整：根据 mastery 动态调整题目难度
+
+### Phase 10：Polish + Tauri ⬜
+
+- [ ] 响应式适配检查
+- [ ] Tauri Android/Windows 打包
+- [ ] 性能优化（图片、字体、动画）
+- [ ] 水平测试功能（快速生成用户画像）
 
 ---
 
