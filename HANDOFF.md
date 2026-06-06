@@ -40,6 +40,7 @@
 | localStorage 封装 | `src/services/storage.ts` |
 | 底部导航 | `src/components/layout/BottomNav.tsx` |
 | 基础 UI 组件 | `src/components/ui/` |
+| 滚动渐隐容器 | `src/components/layout/ScrollFade.tsx` |
 
 ## Pre Phase 6 实现摘要
 
@@ -70,6 +71,18 @@
 3. **反馈面板**（`FeedbackPanel.tsx`）：新增 `IssueItem`（severity Badge + suggestedFix + reason）、`StrategySection`（approach 颜色区分 + keyPoints 列表）
 
 4. **回顾 Store**（`reviewStore.ts`）：`extractFromRecords` 改为按 `IssueCategory` 聚合；新增 `updateMastery` action；`categoryDescription` 中文映射
+
+## Phase 6 Polish 实现摘要
+
+### 变更内容
+
+- **ScrollFade**（新建 `src/components/layout/ScrollFade.tsx`）：顶部 + 底部双端渐隐遮罩，`ResizeObserver + scroll` 检测滚动位置，到顶/底时对应遮罩 `opacity-0`
+- **FlashCard**：去掉对 flex 子元素无效的 `h-[calc(100dvh-13rem)]`，改为 `mb-6` 从弹性分配高度中扣减底部空间
+- **StatsOverview**：数字 `text-display-sm → text-display-md`，sub 标签 `text-caption → text-body-sm`
+- **ImprovementList**：展开区域改用 `grid-template-rows: 0fr → 1fr` CSS 高度动画（200ms），进度条移入 button 内部消除位置异常
+- **review / settings page**：滚动区域替换为 `<ScrollFade>`
+
+---
 
 ## Phase 6 实现摘要
 
@@ -141,4 +154,4 @@
 
 ---
 
-*Phase 6 已完成（2026-06-06）。Phase 7 完成后更新此文件。*
+*Phase 6 + Polish 已完成（2026-06-06）。Phase 7 完成后更新此文件。*

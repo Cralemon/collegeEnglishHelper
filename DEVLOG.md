@@ -709,7 +709,31 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | Phase 5：数据结构重构 | ✅ Agent 完成 | types/mockFeedback/FeedbackPanel/reviewStore 对齐新结构 |
 | Pre Phase 6：首页接口重构 | ✅ Agent 完成 | 旧数据迁移 + CardFront/CardBack 改为纯 props 组件 |
 | Phase 6：回顾页 | ✅ Agent 完成 | StatsOverview + ScoreTrendChart + ImprovementList |
+| Phase 6 Polish | ✅ Agent 完成 | ScrollFade 双端渐隐 + 卡片高度 + 数字放大 + 展开动画 |
 | Phase 7-10 | 待开始 | — |
+
+---
+
+## Phase 6 Polish ✅
+
+**执行者**：Agent
+**日期**：2026-06-06
+
+### 变更内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/components/layout/ScrollFade.tsx`（新建） | 顶部 + 底部双端渐隐遮罩，ResizeObserver + scroll 检测，到顶/底时遮罩淡出 |
+| `src/features/practice/components/FlashCard.tsx` | 去掉无效的 `h-[calc(100dvh-13rem)]`（flex 子元素中不生效），改为 `mb-6` |
+| `src/features/review/components/StatsOverview.tsx` | 数字 `text-display-sm → text-display-md`，sub `text-caption → text-body-sm` |
+| `src/features/review/components/ImprovementList.tsx` | 展开动画改用 `grid-template-rows: 0fr→1fr`；进度条移入 button 内消除浮动问题 |
+| `src/app/review/page.tsx` | 滚动区域换用 `<ScrollFade>` |
+| `src/app/settings/page.tsx` | 滚动区域换用 `<ScrollFade>` |
+
+### 技术笔记
+
+- **flex 子元素中 h-[calc(...)] 不生效**：`flex-1` 让高度由父容器弹性分配，`h-[calc(...)]` 只在高度比弹性分配结果小时才起约束作用。要让卡片在弹性布局中矮一点，应在元素上加 `mb-*` 从分配空间中扣减，而非设置一个通常被覆盖的固定高度。
+- **grid 高度动画**：`grid-template-rows: 0fr → 1fr` + 内层 `overflow-hidden` 是纯 CSS 实现任意高度折叠动画的标准方案，无需 JS 测量。
 
 ---
 
