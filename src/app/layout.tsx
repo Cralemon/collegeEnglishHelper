@@ -28,17 +28,27 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className="h-full flex flex-col font-body bg-canvas text-ink safe-area-top safe-area-bottom">
+      <body className="h-full flex flex-col font-body bg-canvas text-ink">
         <ToastProvider>
           <main className="relative flex-1 min-h-0 flex flex-col">
             {/* z-50: Header portal — absolute so content fills full height underneath */}
-            <div id="app-header" className="absolute top-0 inset-x-0 z-50" />
+            <div
+              id="app-header"
+              className="absolute top-0 inset-x-0 z-50"
+              style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+            />
 
             {/* z-40: Masked blur overlay — hidden on homepage */}
             <BlurOverlay />
 
-            {/* Content */}
-            <div className="flex-1 min-h-0 mx-auto max-w-5xl w-full flex flex-col px-4 md:px-8 md:pl-[88px]">
+            {/* Content: margins keep text inside safe area while backgrounds extend edge-to-edge */}
+            <div
+              className="flex-1 min-h-0 mx-auto max-w-5xl w-full flex flex-col px-4 md:px-8 md:pl-[88px]"
+              style={{
+                marginTop: 'env(safe-area-inset-top, 0px)',
+                marginBottom: 'env(safe-area-inset-bottom, 0px)',
+              }}
+            >
               {children}
             </div>
           </main>

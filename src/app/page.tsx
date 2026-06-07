@@ -231,10 +231,15 @@ export default function HomePage() {
     prevQuestion();
   }, [prevQuestion]);
 
-  // Move focus to textarea when entering practice view
+  // Move focus to textarea when entering practice view, then scroll to top
   useEffect(() => {
     if (!showFeedback && currentQuestion && textareaRef.current) {
       textareaRef.current.focus();
+      // On mobile, browsers auto-scroll to the focused element.
+      // Force scroll back to page top so the source text is visible.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      });
     }
   }, [showFeedback, currentQuestion]);
 
