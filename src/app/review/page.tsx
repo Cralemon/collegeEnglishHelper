@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePracticeStore } from '@/features/practice';
 import { useReviewStore, computeStatistics } from '@/features/review';
-import { StatsOverview, ImprovementList, ScoreTrendChart } from '@/features/review/components';
+import { StatsOverview, ImprovementList, ScoreTrendChart, AnswerHistory } from '@/features/review/components';
 import { ScrollFade } from '@/components/layout/ScrollFade';
 
 export default function ReviewPage() {
@@ -44,6 +44,9 @@ export default function ReviewPage() {
           {answerRecords.length >= 3 && (
             <ScoreTrendChart records={answerRecords} />
           )}
+
+          {/* 答题记录 */}
+          <AnswerHistory />
 
           {/* 改进点列表 */}
           <section>

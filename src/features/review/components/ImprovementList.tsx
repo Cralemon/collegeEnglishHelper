@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/cn';
 import { Badge } from '@/components/ui';
 import type { ImprovementPoint, FeedbackDimension } from '@/types';
@@ -36,6 +37,7 @@ function getMasteryLabel(mastery: number): string {
 
 function ImprovementItem({ point }: { point: ImprovementPoint }) {
   const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="bg-surface-card border border-hairline rounded-xl overflow-hidden">
@@ -83,12 +85,18 @@ function ImprovementItem({ point }: { point: ImprovementPoint }) {
               <p className="text-caption-uppercase text-muted mb-2">关联记录</p>
               <div className="flex flex-wrap gap-1.5">
                 {point.recentIssueIds.slice(0, 8).map((id) => (
-                  <span
+                  <button
                     key={id}
-                    className="text-caption text-muted bg-surface-soft px-2 py-0.5 rounded font-mono"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/review/detail?id=${id}`);
+                    }}
+                    className="text-caption text-primary bg-surface-soft hover:bg-surface-cream-strong px-2 py-0.5 rounded font-mono transition-colors"
+                    title="查看作答详情"
                   >
                     {id.slice(-8)}
-                  </span>
+                  </button>
                 ))}
                 {point.recentIssueIds.length > 8 && (
                   <span className="text-caption text-muted">

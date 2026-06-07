@@ -219,6 +219,7 @@ export default function HomePage() {
   const back = currentRecord ? (
     <CardBack
       record={currentRecord}
+      sourceText={currentQuestion?.sourceText ?? ''}
       isLastQuestion={currentIndex >= questions.length - 1}
       isGenerating={isGenerating}
       onNext={nextQuestion}
