@@ -29,11 +29,15 @@ export function FlashCard({
   const [dragX, setDragX] = useState(0);
   const isDragging = useRef(false);
   const startX = useRef(0);
+  /** ref 保存最新拖拽位置，避免 handlePointerUp 闭包过期 */
+  const dragXRef = useRef(0);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       // Skip drag for interactive elements — let click through
       if ((e.target as HTMLElement).closest(INTERACTIVE_SELECTOR)) return;
+      // 移动端：阻止浏览器默认行为，防止页面滚动/缩放干扰拖拽
+      e.currentTarget.setPointerCapture(e.pointerId);
       isDragging.current = true;
       startX.current = e.clientX;
     },
@@ -44,6 +48,7 @@ export function FlashCard({
     (e: React.PointerEvent) => {
       if (!isDragging.current) return;
       const dx = e.clientX - startX.current;
+      dragXRef.current = dx;
       setDragX(dx);
     },
     [],
@@ -53,14 +58,17 @@ export function FlashCard({
     () => {
       if (!isDragging.current) return;
       isDragging.current = false;
-      if (dragX < -SWIPE_THRESHOLD) {
+      // 使用 ref 而非 state，确保读到最新拖拽位置
+      const dx = dragXRef.current;
+      if (dx < -SWIPE_THRESHOLD) {
         onSwipeLeft?.();
-      } else if (dragX > SWIPE_THRESHOLD) {
+      } else if (dx > SWIPE_THRESHOLD) {
         onSwipeRight?.();
       }
+      dragXRef.current = 0;
       setDragX(0);
     },
-    [dragX, onSwipeLeft, onSwipeRight],
+    [onSwipeLeft, onSwipeRight],
   );
 
   return (
@@ -73,7 +81,6 @@ export function FlashCard({
       )}
     >
       <motion.div
-        drag={false}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -86,17 +93,17 @@ export function FlashCard({
           opacity: Math.max(0.3, 1 - Math.abs(dragX) / 300),
           transformStyle: 'preserve-3d',
         }}
-        className="w-full h-full rounded-xl bg-surface-card border border-hairline touch-pan-y"
+        className="w-full h-full rounded-xl bg-surface-card border border-hairline touch-pan-y select-none"
       >
         <div
           className="absolute inset-0 w-full h-full overflow-y-auto"
-          style={{ backfaceVisibility: 'hidden' }}
+          style={{ backfaceVisibility: 'hidden', touchAction: 'pan-y' }}
         >
           {front}
         </div>
         <div
           className="absolute inset-0 w-full h-full overflow-y-auto"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', touchAction: 'pan-y' }}
         >
           {back}
         </div>

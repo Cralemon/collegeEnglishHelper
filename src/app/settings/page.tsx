@@ -1,7 +1,7 @@
 'use client';
 
 import { ScrollFade } from '@/components/layout/ScrollFade';
-import { UserProfileForm, AppConfigSection, LLMConfigSection, DataManagementSection } from '@/features/settings';
+import { UserProfileForm, AppConfigSection, LearningDataSection, LevelTestSection, LLMConfigSection, DataManagementSection } from '@/features/settings';
 
 export default function SettingsPage() {
   return (
@@ -12,6 +12,8 @@ export default function SettingsPage() {
         <div className="space-y-4 pb-4">
           <UserProfileForm />
           <AppConfigSection />
+          <LearningDataSection />
+          <LevelTestSection />
           <LLMConfigSection />
           <DataManagementSection />
         </div>

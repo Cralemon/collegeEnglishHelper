@@ -249,3 +249,91 @@ export async function generateQuestions(
 
   return questions;
 }
+
+// ============================================================
+// 水平测试评估
+// ============================================================
+
+/** 水平测试单题作答 */
+export interface LevelTestAnswer {
+  sourceText: string;
+  userTranslation: string;
+}
+
+/** 水平测试评估结果 */
+export interface LevelTestResult {
+  gradeLevel: string;
+  vocabularyLevel: number;
+  overallAssessment: string;
+}
+
+const LEVEL_EVAL_SYSTEM_PROMPT = `你是一位大学英语水平评估专家。你会根据学生的翻译测试题答案，评估其英语水平。
+
+## 评估维度
+
+1. 学年段（gradeLevel）：大一 / 大二 / 大三 / 大四 / 研一 / 研二 / 研三
+2. 预估词汇量（vocabularyLevel）：1000 ~ 15000 的整数
+3. 综合评语（overallAssessment）：1-2 句话总结学生水平
+
+## 评估标准
+
+- 大一~大二：基础语法尚可，词汇量有限（<5000），复杂句型驾驭不足
+- 大三~大四：语法较扎实，词汇量中等（5000-8000），能处理中等复杂度句子
+- 研究生：语法扎实，词汇量大（>8000），能处理学术/专业文本
+
+## 输出格式
+
+必须输出严格 JSON：
+{
+  "gradeLevel": "大二",
+  "vocabularyLevel": 4500,
+  "overallAssessment": "学生具备基础翻译能力，语法基本正确，但词汇量和复杂句型处理有待提升。"
+}
+
+仅输出 JSON，不要添加任何解释文字。`;
+
+/**
+ * 调用 LLM 评估学生水平，返回学年段 + 词汇量 + 评语。
+ */
+export async function evaluateLevel(
+  config: LLMConfig,
+  answers: LevelTestAnswer[],
+): Promise<LevelTestResult> {
+  const answersText = answers
+    .map(
+      (a, i) =>
+        `【题目${i + 1}】\n原文：${a.sourceText}\n学生翻译：${a.userTranslation}`,
+    )
+    .join('\n\n');
+
+  const raw = await callLLM(config, LEVEL_EVAL_SYSTEM_PROMPT, answersText);
+  const jsonText = extractJSON(raw);
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    throw new LLMError(
+      'PARSE_ERROR',
+      `水平测试：无法解析 LLM 返回的 JSON：${jsonText.slice(0, 200)}`,
+    );
+  }
+
+  const result = parsed as Record<string, unknown>;
+
+  if (!result.gradeLevel || typeof result.gradeLevel !== 'string') {
+    throw new LLMError('PARSE_ERROR', '水平测试：缺少 gradeLevel 字段');
+  }
+  if (!result.vocabularyLevel || typeof result.vocabularyLevel !== 'number') {
+    throw new LLMError('PARSE_ERROR', '水平测试：缺少 vocabularyLevel 字段');
+  }
+
+  return {
+    gradeLevel: result.gradeLevel,
+    vocabularyLevel: Math.round(result.vocabularyLevel),
+    overallAssessment:
+      typeof result.overallAssessment === 'string'
+        ? result.overallAssessment
+        : '',
+  };
+}

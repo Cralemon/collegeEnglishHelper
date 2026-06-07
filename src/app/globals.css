@@ -260,10 +260,3 @@ html {
   width: 0;
   height: 0;
 }
-
-/* Recharts SVG — suppress focus outline */
-.recharts-surface:focus,
-.recharts-wrapper:focus,
-.recharts-tooltip-wrapper:focus {
-  outline: none;
-}

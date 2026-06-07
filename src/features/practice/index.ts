@@ -12,6 +12,7 @@ export type {
 export {
   evaluateTranslation,
   generateQuestions,
+  evaluateLevel,
   LLMError,
 } from './services/llmClient';
-export type { LLMErrorCode } from './services/llmClient';
+export type { LLMErrorCode, LevelTestAnswer, LevelTestResult } from './services/llmClient';

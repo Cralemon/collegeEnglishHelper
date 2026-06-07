@@ -64,6 +64,7 @@ export default function HomePage() {
 
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
+    toast('正在生成题目...', 'info');
 
     // Phase 9: 读取薄弱领域用于驱动出题
     const { learningData } = useReviewStore.getState();
@@ -97,6 +98,7 @@ export default function HomePage() {
 
     if (newQuestions.length > 0) {
       setQuestions(newQuestions);
+      toast(`已生成 ${newQuestions.length} 道题目`, 'success');
     }
     setIsGenerating(false);
   }, [userProfile, llmConfig, questions, setQuestions, toast]);
