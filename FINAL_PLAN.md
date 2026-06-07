@@ -373,3 +373,4 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 | v2.5 | 2026/06/07 | Pre Phase 8：LLM 接入点梳理 + 提示词设计（翻译反馈 + 题目生成两个 System/User Prompt） |
 | v2.6 | 2026/06/07 | Pre Phase 8 落地：prompts.ts 实现 + 条件块机制 + 学年段自适应评分/难度 |
 | v2.7 | 2026/06/07 | Phase 8：LLM 集成 — llmClient.ts + page.tsx 接入 + LLMError 分级 + mock 降级 |
+| v2.8 | 2026/06/07 | Phase 9：学习闭环 — reviewStore 扩展 LearningData + 掌握度追踪完善 + 弱项驱动出题 |

@@ -19,8 +19,8 @@
 | Phase 7：设置页 | ✅ | 用户信息 + 应用配置 |
 | Pre Phase 8：LLM 提示词设计 | ✅ | prompts.ts 已创建，两个 Prompt Builder 函数就绪 |
 | **Phase 8：LLM 集成** | ✅ | llmClient.ts + page.tsx 集成，LLM 优先 + mock 降级 |
-| Phase 9：学习闭环 | ⬜ **下一步** | 用户画像 + 智能出题 |
-| Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |
+| **Phase 9：学习闭环** | ✅ | 用户画像 + 智能出题 + 掌握度追踪 |
+| Phase 10：Polish + Tauri | ⬜ **下一步** | 打包 + 优化 |
 
 ## 写代码前必须阅读
 
@@ -95,83 +95,58 @@ class LLMError extends Error { code: LLMErrorCode }
 
 ---
 
-## 下一步：Phase 9 — 学习闭环
+## Phase 9 实现摘要
+
+### 修改文件
+
+| 文件 | 变更 |
+|------|------|
+| `src/types/index.ts` | `ImprovementPoint` 新增 `consecutiveAbsences: number` |
+| `src/features/review/store.ts` | 新增 `learningData` 状态 + `computeLearningData()`；`extractFromRecords` → `extractStatsFromRecords`（纯统计）+ `extractImprovements`（状态对比 + mastery 追踪）；`partialize` 新增 `learningData`；新增 `suggestedFocusText` 16 类建议文案 |
+| `src/features/practice/store.ts` | `submitAnswer()` 末尾调用 `useReviewStore.getState().extractImprovements()` |
+| `src/app/page.tsx` | `handleGenerate` + `handleSubmit` 读取 `learningData.weakCategories` 传入 LLM |
+
+### 关键决策
+
+1. **两层分离**：`extractStatsFromRecords`（纯 Map 聚合）→ `extractImprovements`（含历史对比的 mastery 决策），职责清晰
+2. **mastery 统一管理**：出现 -10 / 新出现 50 / 缺席 5 次 +5，全部在 `extractImprovements` 中决策
+3. **recentTrend 阈值 ±5**：避免小波动误判 improving/declining
+4. **learningData = null**：records 为空时用 null 而非零值，便于 UI 判断无数据
+5. **suggestedFocus 中文文案**：16 类各配具体学习建议
+
+---
+
+## 下一步：Phase 10 — Polish + Tauri
 
 ### 背景
 
-Phase 8 已接入真实 LLM。Phase 9 将实现「答题→反馈→优化」的完整循环：
-每次答题后更新用户画像（LearningData），画像指导下一次出题。
-
-### 数据流
-
-```
-page.tsx: submitAnswer(record)
-  → practiceStore.submitAnswer()          // 写入 answerRecords
-  → reviewStore.extractImprovements()     // 重新聚合所有 answerRecords
-    → 计算 improvementPoints              // 按 IssueCategory 聚合 issues
-    → 计算 learningData                   // 各维度平均分 / weakCategories / trend
-      → weakCategories                    // mastery < 50 的 ImprovementPoint
-      → strongCategories                  // mastery > 80 的 IssueCategory
-      → recentTrend                       // 对比近 10 次 vs 前 10 次平均分
-  → page.tsx: handleGenerate()
-    → 读取 reviewStore.learningData.weakCategories
-    → 传入 generateQuestions(config, { ..., weakCategories })
-```
+Phase 9 已完成学习闭环。Phase 10 聚焦打包发布与细节打磨。
 
 ### 需要修改的文件
 
 | 文件 | 当前状态 | 目标 |
 |------|---------|------|
-| `src/features/review/store.ts` | 仅有 `improvementPoints` + `extractImprovements()` | 新增 `learningData: LearningData`；`extractImprovements()` 同步计算 LearningData；修复 `updateMastery()` 未实装的逻辑 |
-| `src/features/practice/store.ts` | `submitAnswer()` 仅写入 answerRecords | `submitAnswer()` 内调用 `reviewStore.getState().extractImprovements()` |
-| `src/app/page.tsx` | `handleGenerate` 未传 `weakCategories` | 读取 `reviewStore.learningData.weakCategories` 并传入 |
+| `src/app/layout.tsx` | 无 viewport meta 控制 | 全局禁止文字选中 + 禁止手势缩放 |
+| `src-tauri/tauri.conf.json` | 基础配置 | Android safeArea + Windows minWidth/minHeight |
+| 各页面 | 基本完成 | 响应式适配检查 + 性能优化 |
 
 ### 具体任务
 
-**Step 9.1：reviewStore 扩展 — LearningData 计算**
-- 新增 `learningData: LearningData` 状态 + `computeLearningData()` action
-- `extractImprovements()` 末尾调用 `computeLearningData()`：
-  - `totalQuestions` = answerRecords.length
-  - `averageScore` = 所有 record.score 的平均值
-  - `dimensionScores` = 各维度 feedback.grammar.score / vocabulary.score / sentenceStructure.score 的平均值
-  - `weakCategories` = improvementPoints 中 mastery < 50 的项，映射为 WeakCategory 数组
-  - `strongCategories` = mastery > 80 的 IssueCategory 数组
-  - `recentTrend` = 将 answerRecords 按时段分组（近 10 次 vs 之前 10 次），比较平均分升降
+**Step 10.1：全局禁止文字选中 + 手势缩放**
+- `layout.tsx` 添加 `user-select: none` + `touch-action: manipulation`
+- viewport meta 确认
 
-**Step 9.2：practiceStore 触发链**
-- `submitAnswer()` 中，写入 record 后：
-  ```typescript
-  import { useReviewStore } from '@/features/review';
-  const records = get().answerRecords; // 包含刚提交的 record
-  useReviewStore.getState().extractImprovements(records);
-  ```
-- 确保 `extractImprovements()` 是幂等的（每次用全量 records 重建）
-- 将 `learningData` 加入 reviewStore 的 `partialize`（持久化）
+**Step 10.2：Tauri 打包配置**
+- Android 状态栏安全区适配（`app.android.safeArea`）
+- Windows 最小窗口大小配置（`app.windows[].minWidth/minHeight`）
 
-**Step 9.3：弱项驱动出题**
-- `page.tsx` 的 `handleGenerate` 中：
-  ```typescript
-  const { learningData } = useReviewStore.getState();
-  const weakCategories = learningData?.weakCategories ?? [];
-  // 传入 generateQuestions
-  await generateQuestions(llmConfig, {
-    ...otherParams,
-    weakCategories, // ← Phase 9 新增
-  });
-  ```
-- `prompts.ts` 的 System Prompt 中 `{{#weakCategories}}` 条件块自动展开
-
-**Step 9.4：掌握度追踪完善**
-- 修复 `reviewStore.updateMastery()` — 当前仅有接口，未实现消失检测逻辑
-- 实现方式：每次 `extractImprovements()` 时，对比新旧 `improvementPoints`：
-  - 新出现的 category → mastery 初始 50
-  - 再次出现 → mastery = max(0, mastery - 10)
-  - 本次未出现 → 检查 `consecutiveAbsences++`，累积 5 次 → mastery = min(100, mastery + 5)
+**Step 10.3：响应式适配检查 + 性能优化**
+- 各断点 UI 审查
+- 图片/字体/动画优化
 
 ### 验收标准
 
 1. `pnpm run build` 无类型错误
-2. 答完一道题后，`reviewStore.learningData` 自动更新（totalQuestions +1，scores 重新计算）
-3. 连续在同一 category 出错 3 次后，`weakCategories` 中出现该 category
-4. 重新生成题目时，LLM Prompt 的 user prompt 中包含薄弱领域信息
-5. Settings 页面可看到 LearningData 概览（可选 Step 9.5）
+2. `npx tauri android build --apk` 成功
+3. `npx tauri build` (Windows) 成功
+4. 移动端不可选中文字、不可手势缩放

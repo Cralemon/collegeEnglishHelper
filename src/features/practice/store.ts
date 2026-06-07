@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Question, AnswerRecord } from '@/types';
 import { STORAGE_KEYS } from '@/services/storage';
+import { useReviewStore } from '@/features/review';
 
 // ============================================================
 // State & Actions 类型
@@ -107,12 +108,16 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
 
       setDraft: (draft) => set({ draft }),
 
-      submitAnswer: (record) =>
+      submitAnswer: (record) => {
         set((state) => ({
           answerRecords: [...state.answerRecords, record],
           isFlipped: true,
           draft: '',
-        })),
+        }));
+        // Phase 9: 触发 reviewStore 重新聚合改进点 + 学习数据
+        const records = get().answerRecords;
+        useReviewStore.getState().extractImprovements(records);
+      },
 
       setEvaluating: (isEvaluating) => set({ isEvaluating }),
 

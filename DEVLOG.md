@@ -713,7 +713,8 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | **Phase 7：设置页** | ✅ Agent 完成 | UserProfileForm + AppConfigSection + LLMConfigSection + DataManagementSection |
 | **Pre Phase 8：LLM 提示词设计** | ✅ Agent 完成 | 2 个接入点梳理 + prompts.ts 落地 |
 | **Phase 8：LLM 集成** | ✅ Agent 完成 | llmClient.ts + page.tsx 接入 + LLM 优先 mock 降级 |
-| Phase 9-10 | 待开始 | — |
+| Phase 9：学习闭环 | ✅ | reviewStore 扩展 + 弱项驱动出题 |
+| Phase 10 | 待开始 | — |
 
 ---
 
@@ -885,6 +886,64 @@ page.tsx
 3. **JSON 提取三层策略**：```json block → 裸 {}[] 定位 → 回退原文
 4. **结构校验不重试**：校验失败直接抛 PARSE_ERROR，由调用方决定是否重试（当前不重试，直接 mock fallback）
 5. **mock 保留为安全网**：用户无感知降级，console.warn 输出错误码方便调试
+
+### 构建验证
+
+`pnpm run build` 通过，零类型错误。
+
+---
+
+## Phase 9：学习闭环 ✅
+
+**执行者**：Agent
+**日期**：2026-06-07
+
+### 目标
+
+实现「答题→反馈→优化」的完整循环：每次答题后更新用户画像（LearningData），画像指导下一次出题。
+
+### 新增内容
+
+| 文件 | 说明 |
+|------|------|
+| （无新增文件） | Phase 9 为纯存量改造 |
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/types/index.ts` | `ImprovementPoint` 新增 `consecutiveAbsences: number` 字段 |
+| `src/features/review/store.ts` | 新增 `learningData` 状态 + `computeLearningData()`；`extractFromRecords` 拆分为纯统计 `extractStatsFromRecords` + 状态对比 `extractImprovements`；掌握度追踪：出现 -10 + 连续缺席 5 次 +5；`clearImprovements` 同时清 `learningData`；`partialize` 新增 `learningData`；新增 `suggestedFocusText` 薄弱点建议文案 |
+| `src/features/practice/store.ts` | `submitAnswer()` 末尾调用 `useReviewStore.getState().extractImprovements()` 触发聚合链 |
+| `src/app/page.tsx` | `handleGenerate` / `handleSubmit` 读取 `learningData.weakCategories` 传入 LLM |
+
+### 关键设计决策
+
+1. **extractStatsFromRecords vs extractImprovements**：将原始统计（纯 Map 聚合）与掌握度追踪（含历史状态对比）分离为两层，职责清晰
+2. **mastery 由 extractImprovements 统一管理**：不从 `extractStatsFromRecords` 计算，而在对比旧状态时决策——新出现 50、再次出现 -10、缺席累积 5 次 +5
+3. **缺席检测**：`extractImprovements` 对比 freshStats 与旧 `improvementPoints`，旧有而本次未出现的 category → `consecutiveAbsences++`（兜底机制，正常场景下不会触发，因为全量 records 包含所有历史 issues）
+4. **recentTrend 阈值 ±5**：近 10 次 vs 前 10 次平均分差值 >5 才判定 improving/declining，避免小波动误判
+5. **learningData 为 null vs 空结构**：records 为空时 `learningData = null`（而非零值结构），便于 UI 层判断"无数据"状态
+6. **suggestedFocus 中文文案**：16 类 IssueCategory 各配具体学习建议，LLM prompt 直接引用
+
+### 数据流
+
+```
+page.tsx: submitAnswer(record)
+  → practiceStore.submitAnswer()          // 写入 answerRecords
+  → reviewStore.extractImprovements()     // 聚合所有 answerRecords
+    → extractStatsFromRecords()           // Map<IssueCategory, RawPointStats>
+    → 对比旧 improvementPoints           // mastery 增减 + consecutiveAbsences
+    → computeLearningData()               // LearningData
+      → totalQuestions / averageScore
+      → dimensionScores (grammar/vocab/sentenceStructure 平均)
+      → weakCategories (mastery < 50)
+      → strongCategories (mastery > 80)
+      → recentTrend (近 10 vs 前 10)
+  → page.tsx: handleGenerate()
+    → 读取 learningData.weakCategories
+    → 传入 generateQuestions() → prompts.ts 条件块展开
+```
 
 ### 构建验证
 

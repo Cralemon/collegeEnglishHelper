@@ -202,6 +202,8 @@ export interface ImprovementPoint {
   lastSeen: number;
   /** 掌握度 0-100，出现时 -10，连续未出现时 +5 */
   mastery: number;
+  /** 连续未出现次数（用于 mastery 回升判定） */
+  consecutiveAbsences: number;
 }
 
 // ============================================================

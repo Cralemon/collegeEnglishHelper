@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { usePracticeStore } from '@/features/practice';
 import { useSettingsStore } from '@/features/settings';
+import { useReviewStore } from '@/features/review';
 import {
   FlashCard,
   CardFront,
@@ -64,6 +65,10 @@ export default function HomePage() {
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
 
+    // Phase 9: 读取薄弱领域用于驱动出题
+    const { learningData } = useReviewStore.getState();
+    const weakCategories = learningData?.weakCategories ?? [];
+
     let newQuestions: typeof questions;
     try {
       newQuestions = await generateQuestions(llmConfig, {
@@ -74,6 +79,7 @@ export default function HomePage() {
         customTopics: userProfile.topicPreference.customTopics,
         count: 10,
         existingTexts: questions.map((q) => q.sourceText),
+        weakCategories,
       });
     } catch (err) {
       if (err instanceof LLMError) {
@@ -100,6 +106,10 @@ export default function HomePage() {
 
     setEvaluating(true);
 
+    // Phase 9: 读取薄弱领域辅助评估
+    const { learningData: ld } = useReviewStore.getState();
+    const submitWeakCategories = ld?.weakCategories ?? [];
+
     let feedback: AIFeedback;
     try {
       feedback = await evaluateTranslation(llmConfig, {
@@ -108,6 +118,7 @@ export default function HomePage() {
         direction: userProfile.translationDirection,
         gradeLevel: userProfile.gradeLevel,
         vocabularyLevel: userProfile.vocabularyLevel,
+        weakCategories: submitWeakCategories,
       });
     } catch (err) {
       if (err instanceof LLMError) {
