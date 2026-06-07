@@ -15,8 +15,8 @@ export function BlurOverlay() {
       aria-hidden="true"
       className="absolute inset-0 z-40 backdrop-blur pointer-events-none"
       style={{
-        WebkitMaskImage: 'linear-gradient(black 0px, black 40px, transparent 100px, transparent calc(100% - 96px), black calc(100% - 12px), black 100%)',
-        maskImage: 'linear-gradient(black 0px, black 40px, transparent 100px, transparent calc(100% - 96px), black calc(100% - 12px), black 100%)',
+        WebkitMaskImage: `linear-gradient(black 0px, black calc(40px + env(safe-area-inset-top, 0px)), transparent calc(100px + env(safe-area-inset-top, 0px)), transparent calc(100% - 96px - env(safe-area-inset-bottom, 0px)), black calc(100% - 12px - env(safe-area-inset-bottom, 0px)), black 100%)`,
+        maskImage: `linear-gradient(black 0px, black calc(40px + env(safe-area-inset-top, 0px)), transparent calc(100px + env(safe-area-inset-top, 0px)), transparent calc(100% - 96px - env(safe-area-inset-bottom, 0px)), black calc(100% - 12px - env(safe-area-inset-bottom, 0px)), black 100%)`,
       }}
     />
   );
