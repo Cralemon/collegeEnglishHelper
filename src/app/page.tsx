@@ -97,11 +97,21 @@ export default function HomePage() {
     }
 
     if (newQuestions.length > 0) {
-      setQuestions(newQuestions);
-      toast(`已生成 ${newQuestions.length} 道题目`, 'success');
+      // 保留有作答记录的旧题目，确保回顾页/详情页能查到原文
+      const answeredOld = questions.filter((q) =>
+        answerRecords.some((r) => r.questionId === q.id),
+      );
+      const merged = [...answeredOld, ...newQuestions];
+      setQuestions(merged);
+      toast(
+        newQuestions.length === merged.length
+          ? `已生成 ${newQuestions.length} 道题目`
+          : `已生成 ${newQuestions.length} 道题目（保留 ${answeredOld.length} 道已答题目）`,
+        'success',
+      );
     }
     setIsGenerating(false);
-  }, [userProfile, llmConfig, questions, setQuestions, toast]);
+  }, [userProfile, llmConfig, questions, answerRecords, setQuestions, toast]);
 
   const handleSubmit = useCallback(async () => {
     if (!draft.trim() || !currentQuestion) return;

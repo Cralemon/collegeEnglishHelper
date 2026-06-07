@@ -2,10 +2,12 @@
 
 import { Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { usePracticeStore } from '@/features/practice';
 import { ScoreDisplay } from '@/features/practice/components/ScoreDisplay';
 import { FeedbackPanel } from '@/features/practice/components/FeedbackPanel';
 import { computeTotalScore } from '@/features/practice/services/mockFeedback';
+import { ScrollFade } from '@/components/layout/ScrollFade';
 import { Button } from '@/components/ui';
 
 function formatDate(ts: number): string {
@@ -32,7 +34,12 @@ function DetailContent() {
 
   if (!record) {
     return (
-      <div className="flex flex-col flex-1 min-h-0">
+      <motion.div
+        className="flex flex-col flex-1 min-h-0"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
         <h1 className="text-display-sm text-ink mb-6 shrink-0">作答详情</h1>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-3">
@@ -42,14 +49,19 @@ function DetailContent() {
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   const score = computeTotalScore(record.feedback);
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <motion.div
+      className="flex flex-col flex-1 min-h-0"
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+    >
       {/* 标题栏 */}
       <div className="flex items-center gap-3 mb-5 shrink-0">
         <button
@@ -67,34 +79,36 @@ function DetailContent() {
         </div>
       </div>
 
-      {/* 内容区 */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-4 space-y-4">
-        {/* 分数 */}
-        <div className="bg-surface-card border border-hairline rounded-xl p-4">
-          <ScoreDisplay score={score} />
-        </div>
-
-        {/* 题目与答案 */}
-        <div className="bg-surface-card border border-hairline rounded-xl p-4 space-y-3">
-          <div>
-            <p className="text-caption-uppercase text-muted mb-1">原文</p>
-            <p className="text-body-md text-ink">{question?.sourceText ?? '(题目已删除)'}</p>
+      {/* 内容区（带渐隐） */}
+      <ScrollFade>
+        <div className="space-y-4 pb-4">
+          {/* 分数 */}
+          <div className="bg-surface-card border border-hairline rounded-xl p-4">
+            <ScoreDisplay score={score} />
           </div>
-          <div>
-            <p className="text-caption-uppercase text-muted mb-1">你的翻译</p>
-            <p className="text-body-md text-ink leading-relaxed bg-surface-soft rounded-lg p-3">
-              {record.userTranslation}
-            </p>
+
+          {/* 题目与答案 */}
+          <div className="bg-surface-card border border-hairline rounded-xl p-4 space-y-3">
+            <div>
+              <p className="text-caption-uppercase text-muted mb-1">原文</p>
+              <p className="text-body-md text-ink">{question?.sourceText ?? '(题目已删除)'}</p>
+            </div>
+            <div>
+              <p className="text-caption-uppercase text-muted mb-1">你的翻译</p>
+              <p className="text-body-md text-ink leading-relaxed bg-surface-soft rounded-lg p-3">
+                {record.userTranslation}
+              </p>
+            </div>
+          </div>
+
+          {/* AI 反馈 */}
+          <div className="bg-surface-card border border-hairline rounded-xl p-4">
+            <p className="text-caption-uppercase text-muted mb-3">AI 反馈</p>
+            <FeedbackPanel feedback={record.feedback} />
           </div>
         </div>
-
-        {/* AI 反馈 */}
-        <div className="bg-surface-card border border-hairline rounded-xl p-4">
-          <p className="text-caption-uppercase text-muted mb-3">AI 反馈</p>
-          <FeedbackPanel feedback={record.feedback} />
-        </div>
-      </div>
-    </div>
+      </ScrollFade>
+    </motion.div>
   );
 }
 
