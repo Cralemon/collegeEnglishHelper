@@ -2,11 +2,18 @@
 
 import { BottomNav } from './BottomNav';
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+interface AppLayoutProps {
+  children: React.ReactNode;
+  /** Sticky blur header — rendered as direct child of <main>, above all scroll content */
+  header?: React.ReactNode;
+}
+
+export function AppLayout({ children, header }: AppLayoutProps) {
   return (
     <>
-      <main className="flex-1 min-h-0">
-        <div className="mx-auto max-w-5xl h-full flex flex-col px-4 pt-6 pb-20 md:px-8 md:pt-8 md:pl-[88px] md:pb-6 lg:pt-12" style={{ overflow: 'clip' }}>
+      <main className="flex-1 min-h-0 flex flex-col">
+        {header}
+        <div className="flex-1 min-h-0 mx-auto max-w-5xl w-full flex flex-col px-4 md:px-8 md:pl-[88px]">
           {children}
         </div>
       </main>

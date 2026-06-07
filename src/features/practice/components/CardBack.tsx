@@ -27,14 +27,14 @@ export function CardBack({
   const score = computeTotalScore(record.feedback);
 
   return (
-    <div className="h-full flex flex-col p-4 sm:p-6">
+    <div className="h-full flex flex-col p-3 gap-2 sm:p-4 sm:gap-3 md:p-5 lg:p-6 lg:gap-4">
       {/* 固定分数 */}
-      <div className="mb-3 sm:mb-4 shrink-0">
+      <div className="shrink-0">
         <ScoreDisplay score={score} />
       </div>
 
       {/* 题目与答案对照 */}
-      <div className="mb-3 shrink-0 space-y-1.5 p-2.5 rounded-lg bg-surface-soft text-body-sm">
+      <div className="shrink-0 space-y-1 p-2 sm:p-2.5 md:p-3 rounded-lg bg-surface-soft text-body-sm">
         <div className="flex items-start gap-1.5">
           <span className="text-caption text-muted shrink-0 mt-px">原文</span>
           <span className="text-ink">{sourceText}</span>
@@ -51,7 +51,7 @@ export function CardBack({
       </div>
 
       {/* 固定底部 */}
-      <div className="pt-3 sm:pt-4 shrink-0">
+      <div className="shrink-0">
         {isLastQuestion ? (
           <Button
             variant="primary"

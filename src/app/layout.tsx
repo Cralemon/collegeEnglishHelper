@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { fontVariables } from '@/styles/fonts';
 import { ThemeScript } from '@/components/ThemeScript';
-import { AppLayout } from '@/components/layout';
+import { BottomNav } from '@/components/layout/BottomNav';
+import { BlurOverlay } from '@/components/layout/BlurOverlay';
 import { ToastProvider } from '@/components/ui';
 import './globals.css';
 
@@ -29,9 +30,19 @@ export default function RootLayout({
       </head>
       <body className="h-full flex flex-col font-body bg-canvas text-ink safe-area-top safe-area-bottom">
         <ToastProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
+          <main className="relative flex-1 min-h-0 flex flex-col">
+            {/* z-50: Header portal — absolute so content fills full height underneath */}
+            <div id="app-header" className="absolute top-0 inset-x-0 z-50" />
+
+            {/* z-40: Masked blur overlay — hidden on homepage */}
+            <BlurOverlay />
+
+            {/* Content */}
+            <div className="flex-1 min-h-0 mx-auto max-w-5xl w-full flex flex-col px-4 md:px-8 md:pl-[88px]">
+              {children}
+            </div>
+          </main>
+          <BottomNav />
         </ToastProvider>
       </body>
     </html>

@@ -39,10 +39,10 @@ export function CardFront({
   };
 
   return (
-    <div className="h-full flex flex-col p-4 gap-3 sm:p-6 sm:gap-4">
+    <div className="h-full flex flex-col p-3 gap-2 sm:p-4 sm:gap-3 md:p-5 lg:p-6 lg:gap-5">
       {/* 固定头部 */}
       <div className="flex items-center justify-between shrink-0">
-        <span className="text-caption-uppercase text-muted bg-surface-soft px-3 py-1 rounded-pill">
+        <span className="text-caption-uppercase text-muted bg-surface-soft px-2.5 sm:px-3 py-1 rounded-pill">
           {getDirectionLabel(direction)}
         </span>
         <span className="text-caption text-muted">
@@ -51,7 +51,7 @@ export function CardFront({
       </div>
 
       {/* 原文 */}
-      <p className="text-body-md text-ink leading-relaxed shrink-0 break-words">
+      <p className="text-body-sm sm:text-body-md lg:text-title-md text-ink leading-relaxed shrink-0 break-words">
         {question.sourceText}
       </p>
 

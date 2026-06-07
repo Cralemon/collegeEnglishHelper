@@ -8,6 +8,7 @@ import type {
   ImprovementPoint,
   IssueCategory,
   LearningData,
+  Question,
   WeakCategory,
 } from '@/types';
 import { STORAGE_KEYS } from '@/services/storage';
@@ -385,5 +386,44 @@ export function computeStatistics(records: AnswerRecord[]): PracticeStatistics {
     minScore,
     scoreDistribution: distribution,
     weakQuestionIds,
+  };
+}
+
+// ============================================================
+// 方向拆分统计
+// ============================================================
+
+export interface DirectionSplitStats {
+  enzh: { records: AnswerRecord[]; stats: PracticeStatistics };
+  zhen: { records: AnswerRecord[]; stats: PracticeStatistics };
+}
+
+/**
+ * 按翻译方向拆分作答记录并分别计算统计
+ * - en-zh = 英译汉
+ * - zh-en = 汉译英
+ */
+export function computeDirectionSplitStats(
+  records: AnswerRecord[],
+  questions: Question[],
+): DirectionSplitStats {
+  const questionMap = new Map(questions.map((q) => [q.id, q]));
+
+  const enzh: AnswerRecord[] = [];
+  const zhen: AnswerRecord[] = [];
+
+  for (const r of records) {
+    const q = questionMap.get(r.questionId);
+    if (!q) continue;
+    if (q.translationDirection === 'en-zh') {
+      enzh.push(r);
+    } else {
+      zhen.push(r);
+    }
+  }
+
+  return {
+    enzh: { records: enzh, stats: computeStatistics(enzh) },
+    zhen: { records: zhen, stats: computeStatistics(zhen) },
   };
 }

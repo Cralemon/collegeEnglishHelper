@@ -52,71 +52,6 @@
 
 ---
 
-## Phase 8 实现摘要
-
-### 新增文件
-
-| 文件 | 说明 |
-|------|------|
-| `src/features/practice/services/llmClient.ts` | LLM API 客户端，fetch 调用 OpenAI 兼容 API + JSON 提取 + 结构校验 |
-| `src/features/practice/services/prompts.ts` | Prompt Builder 函数 + 条件块处理 + 学年段自适应评分/难度 |
-| `src/components/ui/Toast.tsx` | Toast 通知组件：半透明 pill + backdrop-blur + 3s 自动消失 |
-
-### 核心函数
-
-```typescript
-// 翻译反馈评估 — LLM 优先，失败抛 LLMError
-evaluateTranslation(config, params): Promise<AIFeedback>
-
-// 题目生成 — LLM 优先，失败抛 LLMError
-generateQuestions(config, params): Promise<Question[]>
-
-// 错误类型
-class LLMError extends Error { code: LLMErrorCode }
-```
-
-### 修改文件
-
-| 文件 | 变更 |
-|------|------|
-| `src/app/page.tsx` | `handleSubmit`/`handleGenerate` → LLM 优先 + mock 降级；移除人工延迟；标题栏新增 ⋯ 二级菜单（重新生成/清除题目）；NO_API_KEY → Toast error + 拒绝操作 |
-| `src/app/layout.tsx` | 包裹 `<ToastProvider>` |
-| `src/features/practice/store.ts` | 新增 `clearQuestions()` action（仅清题目，保留 answerRecords）；`clearAll()` 仍清全部 |
-| `src/features/practice/index.ts` | 新增 llmClient + prompts 导出 |
-| `src/features/settings/components/AppConfigSection.tsx` | 题目偏好区域新增「修改后将在下一次生成题目时生效」提示 |
-
-### 关键决策
-
-1. **纯 fetch 实现**：不引入 Vercel AI SDK，OpenAI 兼容 API 用 fetch 足够
-2. **LLMError 分级**：`NO_API_KEY` / `NETWORK_ERROR` / `API_ERROR` / `PARSE_ERROR`，调用方可按 code 区分
-3. **NO_API_KEY 硬阻断**：无 Key 时 toast error + 拒绝操作（不降级到 mock）
-4. **clearQuestions vs clearAll**：菜单"清除当前题目"仅清题保留记录（回顾页引用不断）；设置页"清除练习数据"全清
-5. **JSON 提取鲁棒**：依次尝试 ```json code block → 裸 {}/[] → 回退原文
-6. **Toast 半透明 pill**：CSS `var()` 直接引用避免 Tailwind 类名解析问题；`backdrop-filter: blur` 增强层次感；深浅模式外观统一
-
----
-
-## Phase 9 实现摘要
-
-### 修改文件
-
-| 文件 | 变更 |
-|------|------|
-| `src/types/index.ts` | `ImprovementPoint` 新增 `consecutiveAbsences: number` |
-| `src/features/review/store.ts` | 新增 `learningData` 状态 + `computeLearningData()`；`extractFromRecords` → `extractStatsFromRecords`（纯统计）+ `extractImprovements`（状态对比 + mastery 追踪）；`partialize` 新增 `learningData`；新增 `suggestedFocusText` 16 类建议文案 |
-| `src/features/practice/store.ts` | `submitAnswer()` 末尾调用 `useReviewStore.getState().extractImprovements()` |
-| `src/app/page.tsx` | `handleGenerate` + `handleSubmit` 读取 `learningData.weakCategories` 传入 LLM |
-
-### 关键决策
-
-1. **两层分离**：`extractStatsFromRecords`（纯 Map 聚合）→ `extractImprovements`（含历史对比的 mastery 决策），职责清晰
-2. **mastery 统一管理**：出现 -10 / 新出现 50 / 缺席 5 次 +5，全部在 `extractImprovements` 中决策
-3. **recentTrend 阈值 ±5**：避免小波动误判 improving/declining
-4. **learningData = null**：records 为空时用 null 而非零值，便于 UI 判断无数据
-5. **suggestedFocus 中文文案**：16 类各配具体学习建议
-
----
-
 ## Phase 10 实现摘要
 
 ### 修改文件
@@ -147,7 +82,4 @@ class LLMError extends Error { code: LLMErrorCode }
 
 ## 项目已全部完成 🎉
 
-Phase 1-10 全部完成。后续可做：
-- **水平测试**：快速评估用户水平生成初始画像（FINAL_PLAN §10 未实现项）
-- **recharts 替换**：手写 SVG 面积图减少 ~200KB gzip
-- **更多 AI 能力**：如翻译对比分析、写作建议
+Phase 1-10 全部完成。

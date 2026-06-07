@@ -29,10 +29,10 @@ function getScoreLabel(score: number): string {
  */
 export function ScoreDisplay({ score, className }: ScoreDisplayProps) {
   return (
-    <div className={cn('flex flex-col items-center gap-1', className)}>
+    <div className={cn('flex flex-col items-center gap-0.5 sm:gap-1', className)}>
       <p className="text-caption-uppercase text-muted">总分</p>
       <p className={cn('leading-none', getScoreColor(score))}>
-        <span className="text-[32px] font-light tracking-[-0.5px]">{score}</span>
+        <span className="text-[26px] sm:text-[32px] md:text-[36px] font-light tracking-[-0.5px]">{score}</span>
         <span className="text-body-sm text-muted ml-1">/ 100</span>
       </p>
       <p className={cn('text-caption font-medium', getScoreColor(score))}>
