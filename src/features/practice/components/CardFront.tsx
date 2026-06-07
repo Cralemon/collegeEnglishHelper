@@ -29,7 +29,7 @@ export function CardFront({
   onSubmit,
 }: CardFrontProps) {
   return (
-    <div className="h-full flex flex-col p-6 gap-4">
+    <div className="h-full flex flex-col p-4 gap-3 sm:p-6 sm:gap-4">
       {/* 固定头部 */}
       <div className="flex items-center justify-between shrink-0">
         <span className="text-caption-uppercase text-muted bg-surface-soft px-3 py-1 rounded-pill">

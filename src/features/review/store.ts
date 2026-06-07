@@ -45,7 +45,7 @@ function categoryToDimension(category: IssueCategory): FeedbackDimension {
 }
 
 // category 的中文描述（用于 description 字段）
-const categoryDescription: Record<IssueCategory, string> = {
+export const categoryDescription: Record<IssueCategory, string> = {
   'grammar.tense': '时态使用',
   'grammar.voice': '语态（主动/被动）',
   'grammar.agreement': '主谓一致',

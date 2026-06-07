@@ -15,7 +15,7 @@ interface FlashCardProps {
 }
 
 const SWIPE_THRESHOLD = 80;
-const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, [role="button"]';
+const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, summary, details, [role="button"]';
 
 export function FlashCard({
   isFlipped,

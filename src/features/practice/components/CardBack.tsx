@@ -18,9 +18,9 @@ export function CardBack({ record, isLastQuestion, isGenerating, onNext, onGener
   const score = computeTotalScore(record.feedback);
 
   return (
-    <div className="h-full flex flex-col p-6">
+    <div className="h-full flex flex-col p-4 sm:p-6">
       {/* 固定分数 */}
-      <div className="mb-4 shrink-0">
+      <div className="mb-3 sm:mb-4 shrink-0">
         <ScoreDisplay score={score} />
       </div>
 
@@ -30,7 +30,7 @@ export function CardBack({ record, isLastQuestion, isGenerating, onNext, onGener
       </div>
 
       {/* 固定底部 */}
-      <div className="pt-4 shrink-0">
+      <div className="pt-3 sm:pt-4 shrink-0">
         {isLastQuestion ? (
           <Button
             variant="primary"
