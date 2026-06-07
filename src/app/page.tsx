@@ -82,7 +82,7 @@ export default function HomePage() {
           setIsGenerating(false);
           return;
         }
-        toast(`题目生成失败，已使用本地数据：${err.message}`, 'warning');
+        toast(`题目生成失败，已使用本地数据`, 'warning');
       } else {
         toast('题目生成失败，已使用本地数据', 'warning');
       }
@@ -116,7 +116,7 @@ export default function HomePage() {
           setEvaluating(false);
           return;
         }
-        toast(`翻译评估失败，已使用本地数据：${err.message}`, 'warning');
+        toast(`翻译评估失败，已使用本地数据`, 'warning');
       } else {
         toast('翻译评估失败，已使用本地数据', 'warning');
       }

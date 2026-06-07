@@ -20,8 +20,7 @@
 | Pre Phase 8：LLM 提示词设计 | ✅ | prompts.ts 已创建，两个 Prompt Builder 函数就绪 |
 | **Phase 8：LLM 集成** | ✅ | llmClient.ts + page.tsx 集成，LLM 优先 + mock 降级 |
 | Phase 9：学习闭环 | ⬜ **下一步** | 用户画像 + 智能出题 |
-| Phase 9：学习闭环 | ⬜ | 用户画像 + 智能出题 |
-| Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |/cl 
+| Phase 10：Polish + Tauri | ⬜ | 打包 + 优化 |
 
 ## 写代码前必须阅读
 
@@ -44,321 +43,11 @@
 | localStorage 封装 | `src/services/storage.ts` |
 | 底部导航 | `src/components/layout/BottomNav.tsx` |
 | 基础 UI 组件 | `src/components/ui/` |
+| Toast 通知 | `src/components/ui/Toast.tsx` |
 | 滚动渐隐容器 | `src/components/layout/ScrollFade.tsx` |
-
-## Pre Phase 6 实现摘要
-
-### 关键变更
-
-1. **旧数据兼容**（`practiceStore`）：新增 `version: 2 + migrate`，旧 `answerRecords`（缺少 `issues`/`translationStrategy`/`overallSuggestion`）在加载时自动补全，修复运行时 TypeError
-
-2. **CardFront 接口重构**：改为纯 props 组件（`question`/`direction`/`draft`/`isEvaluating`/`onDraftChange`/`onSubmit`），移除对 store 和 `generateMockFeedback` 的直接依赖
-
-3. **CardBack 接口重构**：改为纯 props 组件（`record`/`isLastQuestion`/`onNext`），移除对 store 的直接依赖
-
-4. **page.tsx 接管业务逻辑**：`generateMockFeedback` 调用、`submitAnswer`、`currentRecord` 查找全部移至 `page.tsx`，向 CardFront/CardBack 传 props
-
----
-
-## Phase 7 实现摘要
-
-### 新增文件
-
-| 文件 | 说明 |
-|------|------|
-| `src/features/settings/components/UserProfileForm.tsx` | 昵称（Input）、学年段（Tabs underline 7 选项大一到研三）、词汇量（range slider 1000-15000 step500） |
-| `src/features/settings/components/AppConfigSection.tsx` | 翻译方向/翻译模式/外观主题（Tabs pills）、题目偏好（8 预设 chip toggle + 自定义 Textarea） |
-| `src/features/settings/components/LLMConfigSection.tsx` | API 地址（Input）、API Key（password + eye 显隐切换 + 安全提示）、模型名称（Input） |
-| `src/features/settings/components/DataManagementSection.tsx` | 清除练习数据按钮（window.confirm + practiceStore.clearAll + reviewStore.clearImprovements），仅删练习数据不删设置 |
-
-### 修改文件
-
-- `src/app/settings/page.tsx`：替换占位文字为四组件组合，ScrollFade + space-y-4
-- `src/features/settings/index.ts`：新增 4 个组件导出
-
-### 关键决策
-
-1. **学年段用 underline Tabs**：7 个选项用 underline variant 比 pills 更紧凑
-2. **词汇量用原生 range input**：移动端原生滑块体验最好，自定义 accentColor + 渐变背景
-3. **题目偏好用 chip toggle**：Button variant 在 primary/outline 间切换，比 checkbox 更触屏友好
-4. **LLM Key 显隐切换**：eye/eye-off SVG icon，默认隐藏
-5. **数据清除仅删练习数据**：settingsStore（用户配置/LLM 配置）不受影响
-
----
-
-## 下一步：Pre Phase 8 — LLM 提示词设计
-
-### 背景
-
-在写 LLM 调用代码前，先系统梳理：
-1. 项目中有哪些地方需要 LLM
-2. 每个接入点的输入/输出/约束
-3. 为每个接入点设计 System Prompt + User Prompt（含占位符）
-
-提示词设计完成后，Phase 8 写代码时可以直接引用。
-
-### LLM 接入点全景
-
-| # | 接入点 | 当前 mock 文件 | 调用位置 | 触发时机 |
-|---|--------|---------------|---------|---------|
-| 1 | **翻译反馈** | `mockFeedback.ts` → `generateMockFeedback()` | `page.tsx` → `handleSubmit` | 用户提交翻译后 |
-| 2 | **题目生成** | `mockGenerateQuestions.ts` → `mockGenerateQuestions()` | `page.tsx` → `handleGenerate` | 空状态"生成题目" / 最后一题"生成下一组" |
-
----
-
-### 接入点 1：翻译反馈评估
-
-**功能**：评估用户翻译质量，输出三维反馈（语法/词汇/句型）+ 翻译策略分析 + 整体建议。
-
-**输入**：
-| 参数 | 来源 | 说明 |
-|------|------|------|
-| `sourceText` | `currentQuestion.sourceText` | 待翻译原文 |
-| `userTranslation` | `draft` (用户输入) | 用户的翻译 |
-| `direction` | `userProfile.translationDirection` | `'zh-en'` 或 `'en-zh'` |
-| `gradeLevel` | `userProfile.gradeLevel` | 学年段（大一~研三） |
-| `vocabularyLevel` | `userProfile.vocabularyLevel` | 预估词汇量 |
-| `weakCategories` | `LearningData.weakCategories` | 近期薄弱点（Phase 9 阶段可用） |
-
-**输出**：`AIFeedback` 结构（见 `src/types/index.ts`）
-
-**System Prompt**：
-```
-你是一位经验丰富的大学英语翻译教师，拥有 20 年教学经验。
-你的任务是评估学生的翻译作业，提供专业、具体、有建设性的反馈。
-
-## 评分维度（0-100 整数）
-
-1. **语法 (grammar)**：时态、语态、主谓一致、冠词、介词、从句、语序等
-2. **词汇 (vocabulary)**：词义准确性、搭配、正式度、多样性
-3. **句型 (sentenceStructure)**：句式变化、句子长度、并列结构、段落连贯性
-
-评分标准（基于学生水平 {{gradeLevel}}、词汇量约 {{vocabularyLevel}}）：
-- 大一~大二（词汇量 <5000）：重点评估基础语法和常用词汇，句型基本正确即可给高分
-- 大三~大四（词汇量 5000-8000）：关注词汇多样性和句式变化
-- 研究生（词汇量 >8000）：严格评估学术表达、逻辑连贯性和地道性
-
-## 问题分类（必须从以下枚举中选择）
-
-语法类：grammar.tense / grammar.voice / grammar.agreement / grammar.article / grammar.preposition / grammar.clause / grammar.subjunctive / grammar.word-order
-词汇类：vocab.accuracy / vocab.collocation / vocab.formality / vocab.diversity
-句型类：structure.choppy / structure.run-on / structure.parallelism / structure.coherence
-
-## 严重程度
-
-- error：明显错误，影响理解
-- warning：不够地道或不够准确，但意思可懂
-- suggestion：可优化之处，非错误
-
-## 翻译策略
-
-approach 三选一："直译为主" / "意译为主" / "直译意译结合"
-keyPoints：选取 2-4 个关键短语或语法点，评价翻译质量（优秀/合格/待改进）
-
-## 输出格式
-
-必须输出严格 JSON，结构如下：
-{
-  "grammar": {
-    "score": 0-100,
-    "strengths": ["优点1", "优点2"],
-    "improvements": ["改进建议1"],
-    "issues": [
-      {
-        "userFragment": "用户原文中的问题片段",
-        "suggestedFix": "建议改为...",
-        "reason": "原因说明",
-        "severity": "error|warning|suggestion",
-        "category": "grammar.xxx"
-      }
-    ],
-    "tips": ["学习技巧1", "学习技巧2"]
-  },
-  "vocabulary": { /* 同上结构 */ },
-  "sentenceStructure": { /* 同上结构 */ },
-  "translationStrategy": {
-    "approach": "直译为主|意译为主|直译意译结合",
-    "strengths": ["策略优点"],
-    "suggestions": ["策略改进建议"],
-    "keyPoints": [
-      {
-        "originalFragment": "原文关键片段",
-        "userTranslation": "学生翻译",
-        "evaluation": "优秀|合格|待改进",
-        "alternativeSuggestion": "更好的译法（可选）"
-      }
-    ]
-  },
-  "overallSuggestion": ["整体学习建议1", "整体学习建议2"]
-}
-
-## 注意事项
-
-1. 每个维度至少 1 个、最多 3 个 issues
-2. strengths 和 improvements 避免空数组，始终给出具体内容
-3. overallSuggestion 应针对学生水平给出可操作的建议
-4. 评分客观公正，优秀翻译给 85+ 分
-5. 反馈语气建设性，不要严厉批评
-6. 仅输出 JSON，不要添加任何解释文字
-```
-
-**User Prompt**：
-```
-翻译方向：{{direction === 'zh-en' ? '中译英' : '英译中'}}
-学生水平：{{gradeLevel}}，词汇量约 {{vocabularyLevel}}
-
-【原文】
-{{sourceText}}
-
-【学生翻译】
-{{userTranslation}}
-
-请评估以上翻译，输出 JSON 格式反馈。
-```
-
----
-
-### 接入点 2：题目生成
-
-**功能**：根据用户画像和偏好，生成适合学生水平的翻译练习题。
-
-**输入**：
-| 参数 | 来源 | 说明 |
-|------|------|------|
-| `direction` | `userProfile.translationDirection` | `'zh-en'` 或 `'en-zh'` |
-| `gradeLevel` | `userProfile.gradeLevel` | 学年段 |
-| `vocabularyLevel` | `userProfile.vocabularyLevel` | 预估词汇量 |
-| `presetTopics` | `userProfile.topicPreference.presetTopics` | 预设主题标签 |
-| `customTopics` | `userProfile.topicPreference.customTopics` | 自定义偏好文本 |
-| `count` | 调用参数 | 生成题目数量（建议 10-15） |
-| `weakCategories` | `LearningData.weakCategories` | 薄弱领域（Phase 9 阶段可用） |
-| `existingQuestionTexts` | `questions[].sourceText` | 已有题目文本（用于去重） |
-
-**输出**：`Question[]`（带难度分级）
-
-**System Prompt**：
-```
-你是一位大学英语教材编写专家，擅长根据学生水平和兴趣设计翻译练习题目。
-
-## 学生画像
-
-- 学年段：{{gradeLevel}}
-- 预估词汇量：{{vocabularyLevel}}
-- 翻译方向：{{direction === 'zh-en' ? '中译英' : '英译中'}}
-- 偏好的主题：{{presetTopics}} {{customTopics}}
-
-## 难度控制
-
-| 学年段 | 词汇量 | 句子长度 | 复杂度 |
-|--------|--------|---------|--------|
-| 大一~大二 | <5000 | 10-20 词 | 简单句为主，避免从句嵌套 |
-| 大三~大四 | 5000-8000 | 15-30 词 | 含 1-2 层从句，适当使用学术词汇 |
-| 研究生 | >8000 | 20-40 词 | 复合从句，学术/专业领域词汇 |
-
-## 题目要求
-
-1. 句子自然流畅，来自真实语言场景（新闻、学术、日常对话、商务等）
-2. 包含适度的翻译难点（如固定搭配、文化专有词、长句拆分）
-3. 主题多样化，涵盖学生偏好的领域
-4. 中译英：中文原文地道，非"英式中文"
-5. 英译中：英文原文地道，非"中式英语"
-6. {{#if weakCategories}}重点覆盖薄弱领域：{{weakCategories}}{{/if}}
-7. 与已有题目不重复
-
-## 输出格式
-
-必须输出严格 JSON：
-{
-  "questions": [
-    {
-      "sourceText": "翻译原文",
-      "translationDirection": "{{direction}}",
-      "category": "主题分类",
-      "difficulty": "easy|medium|hard"
-    }
-  ]
-}
-
-## 注意事项
-
-1. 生成恰好 {{count}} 道题目
-2. difficulty 根据学年段和学生水平合理分布（easy:medium:hard ≈ 3:4:3）
-3. 部分题目应覆盖学生的薄弱领域（如有）
-4. 仅输出 JSON，不要添加任何解释文字
-```
-
-**User Prompt**：
-```
-请为以下学生生成 {{count}} 道翻译练习题：
-
-- 学年段：{{gradeLevel}}
-- 词汇量：约 {{vocabularyLevel}}
-- 翻译方向：{{direction === 'zh-en' ? '中译英' : '英译中'}}
-- 兴趣主题：{{presetTopics}} {{customTopics}}
-{{#if weakCategories}}- 近期薄弱领域：{{weakCategories}}{{/if}}
-{{#if existingTexts}}- 已有题目（请避免重复）：{{existingTexts}}{{/if}}
-
-请直接输出 JSON。
-```
-
----
-
-### 占位符汇总
-
-| 占位符 | 类型 | 来源 | 适用提示词 |
-|--------|------|------|-----------|
-| `{{sourceText}}` | string | currentQuestion | 反馈 |
-| `{{userTranslation}}` | string | draft (用户输入) | 反馈 |
-| `{{direction}}` | TranslationDirection | userProfile | 反馈 + 出题 |
-| `{{gradeLevel}}` | GradeLevel | userProfile | 反馈 + 出题 |
-| `{{vocabularyLevel}}` | number | userProfile | 反馈 + 出题 |
-| `{{presetTopics}}` | PresetTopic[] | userProfile.topicPreference | 出题 |
-| `{{customTopics}}` | string | userProfile.topicPreference | 出题 |
-| `{{count}}` | number | 调用方 | 出题 |
-| `{{weakCategories}}` | WeakCategory[] | LearningData | 反馈 + 出题（Phase 9） |
-| `{{existingTexts}}` | string[] | questions[].sourceText | 出题（去重） |
-
----
-
-### 实现策略
-
-1. **Prompt 文件**：在 `src/features/practice/services/` 下新建 `prompts.ts`，export 两个函数：
-   - `buildFeedbackPrompt(params)` → `{ system: string, user: string }`
-   - `buildQuestionGenerationPrompt(params)` → `{ system: string, user: string }`
-2. **占位符替换**：用简单的 `String.replace` 或模板字符串处理，不引入额外依赖
-3. **响应解析**：`JSON.parse` + try/catch，失败时 fallback 到 mock 数据
-4. **Step 顺序**：先写 prompts.ts → 再写 API Route → 最后集成到 page.tsx
-
----
-
-## Pre Phase 8 实现摘要
-
-### 新增文件
-
-| 文件 | 说明 |
-|------|------|
-| `src/features/practice/services/prompts.ts` | 两个 Prompt Builder 函数 + 参数类型 + 条件块处理工具 |
-
-### 核心函数
-
-```typescript
-// 接入点 1 — 翻译反馈
-buildFeedbackPrompt(params: FeedbackPromptParams): PromptPair
-  // params: { sourceText, userTranslation, direction, gradeLevel, vocabularyLevel, weakCategories? }
-  // returns: { systemPrompt, userPrompt }
-
-// 接入点 2 — 题目生成
-buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPair
-  // params: { direction, gradeLevel, vocabularyLevel, presetTopics, customTopics, count, weakCategories?, existingTexts? }
-  // returns: { systemPrompt, userPrompt }
-```
-
-### 关键决策
-
-1. **参数化设计**：所有占位符通过参数对象传入，不依赖 store，方便测试和复用
-2. **条件块机制**：`{{#key}}...{{/key}}` Handlebars 风格，`weakCategories` 和 `existingTexts` 可选时自动移除整块
-3. **学年段自适应**：评分标准（大一大二宽松 → 研究生严格）和难度分布（easy:medium:hard 比例）根据 `gradeLevel` 动态生成
-4. **主题标签中文化**：`PresetTopic` enum → 中文标签自动映射
+| 题目生成 mock | `src/features/practice/services/mockGenerateQuestions.ts` |
+| 首页（核心业务逻辑） | `src/app/page.tsx` |
+| 应用布局 | `src/app/layout.tsx` |
 
 ---
 
@@ -369,6 +58,8 @@ buildQuestionGenerationPrompt(params: QuestionGenerationPromptParams): PromptPai
 | 文件 | 说明 |
 |------|------|
 | `src/features/practice/services/llmClient.ts` | LLM API 客户端，fetch 调用 OpenAI 兼容 API + JSON 提取 + 结构校验 |
+| `src/features/practice/services/prompts.ts` | Prompt Builder 函数 + 条件块处理 + 学年段自适应评分/难度 |
+| `src/components/ui/Toast.tsx` | Toast 通知组件：半透明 pill + backdrop-blur + 3s 自动消失 |
 
 ### 核心函数
 
@@ -387,17 +78,20 @@ class LLMError extends Error { code: LLMErrorCode }
 
 | 文件 | 变更 |
 |------|------|
-| `src/app/page.tsx` | `handleSubmit` → `evaluateTranslation()` + mock fallback；`handleGenerate` → `generateQuestions()` + mock fallback；移除人工延迟 |
-| `src/features/practice/index.ts` | 新增 llmClient 导出 |
+| `src/app/page.tsx` | `handleSubmit`/`handleGenerate` → LLM 优先 + mock 降级；移除人工延迟；标题栏新增 ⋯ 二级菜单（重新生成/清除题目）；NO_API_KEY → Toast error + 拒绝操作 |
+| `src/app/layout.tsx` | 包裹 `<ToastProvider>` |
+| `src/features/practice/store.ts` | 新增 `clearQuestions()` action（仅清题目，保留 answerRecords）；`clearAll()` 仍清全部 |
+| `src/features/practice/index.ts` | 新增 llmClient + prompts 导出 |
+| `src/features/settings/components/AppConfigSection.tsx` | 题目偏好区域新增「修改后将在下一次生成题目时生效」提示 |
 
 ### 关键决策
 
 1. **纯 fetch 实现**：不引入 Vercel AI SDK，OpenAI 兼容 API 用 fetch 足够
 2. **LLMError 分级**：`NO_API_KEY` / `NETWORK_ERROR` / `API_ERROR` / `PARSE_ERROR`，调用方可按 code 区分
-3. **JSON 提取鲁棒**：依次尝试 ```json code block → 裸 {}/[] → 回退原文
-4. **结构校验**：反馈校验 score + translationStrategy + overallSuggestion；出题校验 questions 非空
-5. **mock 保留为降级**：LLM 失败自动 fallback，用户无感知
-6. **移除人工延迟**：`setTimeout` 模拟延迟已删除
+3. **NO_API_KEY 硬阻断**：无 Key 时 toast error + 拒绝操作（不降级到 mock）
+4. **clearQuestions vs clearAll**：菜单"清除当前题目"仅清题保留记录（回顾页引用不断）；设置页"清除练习数据"全清
+5. **JSON 提取鲁棒**：依次尝试 ```json code block → 裸 {}/[] → 回退原文
+6. **Toast 半透明 pill**：CSS `var()` 直接引用避免 Tailwind 类名解析问题；`backdrop-filter: blur` 增强层次感；深浅模式外观统一
 
 ---
 
@@ -408,36 +102,76 @@ class LLMError extends Error { code: LLMErrorCode }
 Phase 8 已接入真实 LLM。Phase 9 将实现「答题→反馈→优化」的完整循环：
 每次答题后更新用户画像（LearningData），画像指导下一次出题。
 
+### 数据流
+
+```
+page.tsx: submitAnswer(record)
+  → practiceStore.submitAnswer()          // 写入 answerRecords
+  → reviewStore.extractImprovements()     // 重新聚合所有 answerRecords
+    → 计算 improvementPoints              // 按 IssueCategory 聚合 issues
+    → 计算 learningData                   // 各维度平均分 / weakCategories / trend
+      → weakCategories                    // mastery < 50 的 ImprovementPoint
+      → strongCategories                  // mastery > 80 的 IssueCategory
+      → recentTrend                       // 对比近 10 次 vs 前 10 次平均分
+  → page.tsx: handleGenerate()
+    → 读取 reviewStore.learningData.weakCategories
+    → 传入 generateQuestions(config, { ..., weakCategories })
+```
+
 ### 需要修改的文件
 
 | 文件 | 当前状态 | 目标 |
 |------|---------|------|
-| `src/features/review/store.ts` | 仅有 improvementPoints | 新增 LearningData 计算（totalQuestions/averageScore/dimensionScores/weakCategories/strongCategories/recentTrend） |
-| `src/features/practice/store.ts` | 管理 questions + answerRecords | 答题时触发 LearningData 更新 |
-| `src/app/page.tsx` | 调用 LLM 但未传 weakCategories | 传入 weakCategories 指导出题 |
+| `src/features/review/store.ts` | 仅有 `improvementPoints` + `extractImprovements()` | 新增 `learningData: LearningData`；`extractImprovements()` 同步计算 LearningData；修复 `updateMastery()` 未实装的逻辑 |
+| `src/features/practice/store.ts` | `submitAnswer()` 仅写入 answerRecords | `submitAnswer()` 内调用 `reviewStore.getState().extractImprovements()` |
+| `src/app/page.tsx` | `handleGenerate` 未传 `weakCategories` | 读取 `reviewStore.learningData.weakCategories` 并传入 |
 
 ### 具体任务
 
-**Step 9.1：LearningData 数据流**
-- reviewStore 新增 `learningData: LearningData` 状态
-- `extractImprovements()` 同步计算 LearningData（各维度平均分、weak/strong categories、trend）
-- practiceStore 每次 `submitAnswer()` 后触发 `reviewStore.extractImprovements()`
+**Step 9.1：reviewStore 扩展 — LearningData 计算**
+- 新增 `learningData: LearningData` 状态 + `computeLearningData()` action
+- `extractImprovements()` 末尾调用 `computeLearningData()`：
+  - `totalQuestions` = answerRecords.length
+  - `averageScore` = 所有 record.score 的平均值
+  - `dimensionScores` = 各维度 feedback.grammar.score / vocabulary.score / sentenceStructure.score 的平均值
+  - `weakCategories` = improvementPoints 中 mastery < 50 的项，映射为 WeakCategory 数组
+  - `strongCategories` = mastery > 80 的 IssueCategory 数组
+  - `recentTrend` = 将 answerRecords 按时段分组（近 10 次 vs 之前 10 次），比较平均分升降
 
-**Step 9.2：掌握度追踪**
-- 实现 `updateMastery()` 逻辑（出现 -10，连续 5 次未出现 +5）
-- mastery > 80 标记为"已掌握"，不再优先推荐
+**Step 9.2：practiceStore 触发链**
+- `submitAnswer()` 中，写入 record 后：
+  ```typescript
+  import { useReviewStore } from '@/features/review';
+  const records = get().answerRecords; // 包含刚提交的 record
+  useReviewStore.getState().extractImprovements(records);
+  ```
+- 确保 `extractImprovements()` 是幂等的（每次用全量 records 重建）
+- 将 `learningData` 加入 reviewStore 的 `partialize`（持久化）
 
 **Step 9.3：弱项驱动出题**
-- `handleGenerate` 读取 `reviewStore.learningData.weakCategories`
-- 传入 `generateQuestions()` 的 `weakCategories` 参数
-- LLM 根据薄弱领域定向出题
+- `page.tsx` 的 `handleGenerate` 中：
+  ```typescript
+  const { learningData } = useReviewStore.getState();
+  const weakCategories = learningData?.weakCategories ?? [];
+  // 传入 generateQuestions
+  await generateQuestions(llmConfig, {
+    ...otherParams,
+    weakCategories, // ← Phase 9 新增
+  });
+  ```
+- `prompts.ts` 的 System Prompt 中 `{{#weakCategories}}` 条件块自动展开
 
-**Step 9.4：设置页画像展示（可选）**
-- Settings 页面新增 LearningData 展示卡片
-- 显示：各维度平均分、薄弱领域、学习趋势
+**Step 9.4：掌握度追踪完善**
+- 修复 `reviewStore.updateMastery()` — 当前仅有接口，未实现消失检测逻辑
+- 实现方式：每次 `extractImprovements()` 时，对比新旧 `improvementPoints`：
+  - 新出现的 category → mastery 初始 50
+  - 再次出现 → mastery = max(0, mastery - 10)
+  - 本次未出现 → 检查 `consecutiveAbsences++`，累积 5 次 → mastery = min(100, mastery + 5)
 
 ### 验收标准
 
 1. `pnpm run build` 无类型错误
-2. 答题后 reviewStore.learningData 正确更新
-3. 出题时 LLM 收到 weakCategories，生成的题目覆盖薄弱领域
+2. 答完一道题后，`reviewStore.learningData` 自动更新（totalQuestions +1，scores 重新计算）
+3. 连续在同一 category 出错 3 次后，`weakCategories` 中出现该 category
+4. 重新生成题目时，LLM Prompt 的 user prompt 中包含薄弱领域信息
+5. Settings 页面可看到 LearningData 概览（可选 Step 9.5）

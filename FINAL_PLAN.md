@@ -275,14 +275,14 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] 更新 `FeedbackPanel.tsx`：展示 issues 列表（severity 标记）+ 翻译策略分析
 - [x] 更新 `reviewStore.ts`：基于 Issue.category 聚合改进点，计算 mastery
 
-### Phase 6：回顾页 ⬜
+### Phase 6：回顾页 ✅
 
 **目标**：展示统计数据和改进点，支持薄弱点追踪
 
-- [ ] 统计概览卡片：刷题数、平均分、各维度分数
-- [ ] 改进点列表：按 category 聚合，按 frequency/mastery 排序，可展开查看详情
-- [ ] 分数趋势图（Recharts 面积图）
-- [ ] 薄弱点筛选：点击改进点可筛选相关题目
+- [x] 统计概览卡片：刷题数、平均分、各维度分数
+- [x] 改进点列表：按 category 聚合，按 frequency/mastery 排序，可展开查看详情
+- [x] 分数趋势图（Recharts 面积图）
+- [x] 薄弱点筛选：点击改进点可筛选相关题目
 
 ### Phase 7：设置页 ✅
 
@@ -302,8 +302,6 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 - [x] 接入点 2 — 题目生成：基于用户画像生成个性化翻译练习题
 - [x] 创建 `src/features/practice/services/prompts.ts`
 - [x] 占位符参数化：`buildFeedbackPrompt(params)` + `buildQuestionGenerationPrompt(params)`
-
-> 详细提示词设计见 `HANDOFF.md` Pre Phase 8 章节。实现代码见 `src/features/practice/services/prompts.ts`。
 
 ### Phase 8：LLM 集成 ✅
 
