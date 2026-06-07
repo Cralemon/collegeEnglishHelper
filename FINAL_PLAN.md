@@ -374,3 +374,4 @@ function updateMastery(point: ImprovementPoint, isOccurred: boolean) {
 | v2.6 | 2026/06/07 | Pre Phase 8 落地：prompts.ts 实现 + 条件块机制 + 学年段自适应评分/难度 |
 | v2.7 | 2026/06/07 | Phase 8：LLM 集成 — llmClient.ts + page.tsx 接入 + LLMError 分级 + mock 降级 |
 | v2.8 | 2026/06/07 | Phase 9：学习闭环 — reviewStore 扩展 LearningData + 掌握度追踪完善 + 弱项驱动出题 |
+| v2.9 | 2026/06/07 | Phase 10：Polish + Tauri — 全局禁止选中/缩放 + Tauri 窗口 minWidth/minHeight + 安全区适配 + 死代码清理 |

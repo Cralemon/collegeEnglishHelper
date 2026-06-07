@@ -714,7 +714,7 @@ Phase 5 更新了数据结构，但 localStorage 中残留的旧 `answerRecords`
 | **Pre Phase 8：LLM 提示词设计** | ✅ Agent 完成 | 2 个接入点梳理 + prompts.ts 落地 |
 | **Phase 8：LLM 集成** | ✅ Agent 完成 | llmClient.ts + page.tsx 接入 + LLM 优先 mock 降级 |
 | Phase 9：学习闭环 | ✅ | reviewStore 扩展 + 弱项驱动出题 |
-| Phase 10 | 待开始 | — |
+| Phase 10：Polish + Tauri | ✅ | 全局禁止选中/缩放 + Tauri 窗口配置 + 响应式修复 + 性能清理 |
 
 ---
 
@@ -944,6 +944,47 @@ page.tsx: submitAnswer(record)
     → 读取 learningData.weakCategories
     → 传入 generateQuestions() → prompts.ts 条件块展开
 ```
+
+### 构建验证
+
+`pnpm run build` 通过，零类型错误。
+
+---
+
+## Phase 10：Polish + Tauri ✅
+
+**执行者**：Agent
+**日期**：2026-06-07
+
+### 目标
+
+全局 UX 打磨（禁止选中/缩放）、Tauri 打包配置、响应式修复、性能清理。
+
+### 修改内容
+
+| 文件 | 变更 |
+|------|------|
+| `src/app/layout.tsx` | 新增 `viewport` 导出（`maximumScale=1, userScalable=false`）；body 添加 `safe-area-top safe-area-bottom` |
+| `src/app/globals.css` | 删除死代码：`@font-face SourceHanSerifSC`（引用不存在的 .ttc）；移除废弃的 `overflow: overlay`；新增全局 `user-select: none`（input/textarea 除外）+ `touch-action: manipulation`；新增 `.safe-area-*` 和 `.safe-mt/safe-mb` 安全区工具类 |
+| `src-tauri/tauri.conf.json` | Windows 新增 `minWidth: 360, minHeight: 480` |
+| `src/components/layout/BottomNav.tsx` | nav 添加 `safe-mb`（Android 导航栏安全区适配） |
+| `src/features/practice/components/CardFront.tsx` | 原文 `<p>` 添加 `break-words`（防止长单词溢出） |
+| `src/features/review/components/ImprovementList.tsx` | `min-w-[72px]` → `min-w-[60px] sm:min-w-[72px]`（<360px 屏幕防溢出） |
+
+### 删除内容
+
+| 内容 | 大小 | 原因 |
+|------|------|------|
+| `public/fonts/SourceHanSerifSC-Regular-subset.woff2` | 2.5MB | 从未被 fonts.ts 引用，死数据 |
+| `public/fonts/SourceHanSerifSC-Bold-subset.woff2` | 2.5MB | 同上 |
+| `globals.css` `@font-face SourceHanSerifSC` 块 | — | 引用不存在的 `SourceHanSerif.ttc`，字体栈中也未使用 |
+
+### 关键决策
+
+1. **viewport 在 layout.tsx 导出**：Next.js App Router 支持从 layout 导出 `viewport` 对象，比 meta tag 更规范
+2. **安全区使用 CSS `env()`**：Tauri 的 `enableEdgeToEdge()` 已存在于 MainActivity.kt，CSS 侧负责添加对应的 padding/margin
+3. **字体清理**：Source Han Serif woff2 子集在 v3.12 字体优化时生成，但 fonts.ts 只用 EB Garamond + Sarasa Gothic，Source Han Serif 从未接入字体栈。APK 可减少 ~5MB
+4. **recharts 体积问题暂不处理**：ScoreTrendChart 是唯一使用 recharts 的组件，替换为手写 SVG 需较大重构，留待后续
 
 ### 构建验证
 

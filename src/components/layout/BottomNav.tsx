@@ -29,7 +29,7 @@ export function BottomNav() {
     <nav
       className={cn(
         'fixed z-50 pointer-events-none',
-        'bottom-0 left-0 right-0 flex justify-center',
+        'bottom-0 left-0 right-0 flex justify-center safe-mb',
         'md:top-1/2 md:bottom-auto md:right-auto md:left-auto md:-translate-y-1/2 md:flex-col md:items-center',
         isLeft ? 'md:left-4' : 'md:right-4',
       )}

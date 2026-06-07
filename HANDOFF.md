@@ -20,7 +20,8 @@
 | Pre Phase 8：LLM 提示词设计 | ✅ | prompts.ts 已创建，两个 Prompt Builder 函数就绪 |
 | **Phase 8：LLM 集成** | ✅ | llmClient.ts + page.tsx 集成，LLM 优先 + mock 降级 |
 | **Phase 9：学习闭环** | ✅ | 用户画像 + 智能出题 + 掌握度追踪 |
-| Phase 10：Polish + Tauri | ⬜ **下一步** | 打包 + 优化 |
+| **Phase 10：Polish + Tauri** | ✅ | 全局禁止选中/缩放 + Tauri 窗口配置 + 安全区 + 性能清理 |
+| 项目完成 | 🎉 | 全部 Phase 1-10 已完成 |
 
 ## 写代码前必须阅读
 
@@ -116,37 +117,37 @@ class LLMError extends Error { code: LLMErrorCode }
 
 ---
 
-## 下一步：Phase 10 — Polish + Tauri
+## Phase 10 实现摘要
 
-### 背景
+### 修改文件
 
-Phase 9 已完成学习闭环。Phase 10 聚焦打包发布与细节打磨。
+| 文件 | 变更 |
+|------|------|
+| `src/app/layout.tsx` | 新增 `viewport` 导出（禁止缩放）；body 添加 `safe-area-top safe-area-bottom` |
+| `src/app/globals.css` | 删除死 `@font-face SourceHanSerifSC`；移除废弃 `overflow: overlay`；新增 `user-select: none` + `touch-action: manipulation`；新增 `.safe-area-*` / `.safe-mt` / `.safe-mb` 安全区工具类 |
+| `src-tauri/tauri.conf.json` | Windows 新增 `minWidth: 360, minHeight: 480` |
+| `src/components/layout/BottomNav.tsx` | nav 添加 `safe-mb`（Android 导航栏适配） |
+| `src/features/practice/components/CardFront.tsx` | 原文 `<p>` 添加 `break-words` |
+| `src/features/review/components/ImprovementList.tsx` | `min-w-[72px]` → `min-w-[60px] sm:min-w-[72px]`（窄屏防溢出） |
 
-### 需要修改的文件
+### 删除内容
 
-| 文件 | 当前状态 | 目标 |
-|------|---------|------|
-| `src/app/layout.tsx` | 无 viewport meta 控制 | 全局禁止文字选中 + 禁止手势缩放 |
-| `src-tauri/tauri.conf.json` | 基础配置 | Android safeArea + Windows minWidth/minHeight |
-| 各页面 | 基本完成 | 响应式适配检查 + 性能优化 |
+| 内容 | 原因 |
+|------|------|
+| `public/fonts/SourceHanSerifSC-*-subset.woff2`（~5MB） | fonts.ts 从未引用，字体栈只用 EB Garamond + Sarasa Gothic |
+| `globals.css` `@font-face SourceHanSerifSC` | 引用不存在的 .ttc 文件 |
 
-### 具体任务
+### 关键决策
 
-**Step 10.1：全局禁止文字选中 + 手势缩放**
-- `layout.tsx` 添加 `user-select: none` + `touch-action: manipulation`
-- viewport meta 确认
+1. **CSS `env(safe-area-inset-*)`** + Tauri 已有的 `enableEdgeToEdge()` (=Android 边到边渲染)
+2. **viewport 从 layout.tsx 导出**：Next.js App Router 规范方式
+3. **recharts 体积暂不处理**：ScoreTrendChart 唯一使用，替换需较大重构
 
-**Step 10.2：Tauri 打包配置**
-- Android 状态栏安全区适配（`app.android.safeArea`）
-- Windows 最小窗口大小配置（`app.windows[].minWidth/minHeight`）
+---
 
-**Step 10.3：响应式适配检查 + 性能优化**
-- 各断点 UI 审查
-- 图片/字体/动画优化
+## 项目已全部完成 🎉
 
-### 验收标准
-
-1. `pnpm run build` 无类型错误
-2. `npx tauri android build --apk` 成功
-3. `npx tauri build` (Windows) 成功
-4. 移动端不可选中文字、不可手势缩放
+Phase 1-10 全部完成。后续可做：
+- **水平测试**：快速评估用户水平生成初始画像（FINAL_PLAN §10 未实现项）
+- **recharts 替换**：手写 SVG 面积图减少 ~200KB gzip
+- **更多 AI 能力**：如翻译对比分析、写作建议

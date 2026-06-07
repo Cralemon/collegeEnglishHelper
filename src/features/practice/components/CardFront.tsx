@@ -41,7 +41,7 @@ export function CardFront({
       </div>
 
       {/* 原文 */}
-      <p className="text-body-md text-ink leading-relaxed shrink-0">
+      <p className="text-body-md text-ink leading-relaxed shrink-0 break-words">
         {question.sourceText}
       </p>
 

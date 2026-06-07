@@ -55,7 +55,7 @@ function ImprovementItem({ point }: { point: ImprovementPoint }) {
               <span className="text-caption text-muted">出现 {point.frequency} 次</span>
             </div>
           </div>
-          <div className="shrink-0 flex flex-col items-end gap-1 min-w-[72px]">
+          <div className="shrink-0 flex flex-col items-end gap-1 min-w-[60px] sm:min-w-[72px]">
             <Badge variant={getMasteryVariant(point.mastery)} size="sm">
               {getMasteryLabel(point.mastery)}
             </Badge>
